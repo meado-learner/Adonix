@@ -1,5 +1,5 @@
 process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '1'
-import './duckconfig.js'
+import './hamstyfig.js'
 import './plugins/_fakeReply.js'
 import cfonts from 'cfonts'
 import { createRequire } from 'module'
