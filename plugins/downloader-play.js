@@ -1,7 +1,7 @@
 import yts from 'yt-search';
 import fetch from 'node-fetch';
 
-let handler = async (m, { conn, command, args, text, usedPrefix }) => {
+let handler = async (m, { conn, command, text, usedPrefix }) => {
   if (!text) 
     return conn.reply(
       m.chat, 
@@ -48,7 +48,7 @@ let handler = async (m, { conn, command, args, text, usedPrefix }) => {
       contextInfo: {
         externalAdReply: {
           title: title || 'Video',
-          body: botname || '',
+          body: author.name || '',
           mediaType: 1,
           mediaUrl: url,
           sourceUrl: url,
@@ -64,24 +64,10 @@ let handler = async (m, { conn, command, args, text, usedPrefix }) => {
   try {
     if (command === 'play' || command === 'play2') {
       if (command.endsWith('mp3') || command === 'play') {
-        let audioUrl;
-        let apiName = '';
-
-        if (global.mayapi) {
-          apiName = 'MayAPI';
-          const endpoint = `${global.mayapi}/ytdl?url=${encodeURIComponent(url)}&type=mp3&apikey=may-3d9ac5f2`;
-          let resApi = await fetch(endpoint);
-          let json = await resApi.json();
-          audioUrl = json.result?.url;
-        }
-
-        if (!audioUrl && global.apiadonix) {
-          apiName = 'Adonix API';
-          const endpoint = `${global.apiadonix}/download/ytmp3?apikey=Adofreekey&url=${encodeURIComponent(url)}`;
-          let resApi = await fetch(endpoint);
-          let json = await resApi.json();
-          audioUrl = json.data?.url;
-        }
+        const endpoint = `${global.apiadonix}/download/ytmp3?apikey=Adofreekey&url=${encodeURIComponent(url)}`;
+        const resApi = await fetch(endpoint);
+        const json = await resApi.json();
+        const audioUrl = json.data?.url;
 
         if (!audioUrl) 
           return conn.reply(
@@ -91,35 +77,16 @@ let handler = async (m, { conn, command, args, text, usedPrefix }) => {
           );
 
         await conn.sendMessage(m.chat, { 
-          text: `> ❑ *Server:* *${apiName}*`,
-          quoted: m
-        });
-
-        await conn.sendMessage(m.chat, { 
           audio: { url: audioUrl }, 
           mimetype: 'audio/mpeg', 
           ptt: false 
         }, { quoted: m });
 
       } else {
-        let videoUrl;
-        let apiName = '';
-
-        if (global.mayapi) {
-          apiName = 'MayAPI';
-          const endpoint = `${global.mayapi}/ytdl?url=${encodeURIComponent(url)}&type=mp4&apikey=may-3d9ac5f2`;
-          let resApi = await fetch(endpoint);
-          let json = await resApi.json();
-          videoUrl = json.result?.url;
-        }
-
-        if (!videoUrl && global.apiadonix) {
-          apiName = 'Adonix API';
-          const endpoint = `${global.apiadonix}/download/ytmp4?apikey=Adofreekey&url=${encodeURIComponent(url)}`;
-          let resApi = await fetch(endpoint);
-          let json = await resApi.json();
-          videoUrl = json.data?.url;
-        }
+        const endpoint = `${global.apiadonix}/download/ytmp4?apikey=Adofreekey&url=${encodeURIComponent(url)}`;
+        const resApi = await fetch(endpoint);
+        const json = await resApi.json();
+        const videoUrl = json.data?.url;
 
         if (!videoUrl) 
           return conn.reply(
@@ -127,11 +94,6 @@ let handler = async (m, { conn, command, args, text, usedPrefix }) => {
             '「✦」 Ocurrió un error, no se pudo obtener el video.', 
             m
           );
-
-        await conn.sendMessage(m.chat, { 
-          text: `> ❑ *Server:* *${apiName}*`,
-          quoted: m
-        });
 
         await conn.sendMessage(m.chat, { 
           video: { url: videoUrl }, 
