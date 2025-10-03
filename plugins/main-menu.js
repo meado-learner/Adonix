@@ -1,8 +1,10 @@
 import moment from "moment-timezone"
 import fs from "fs"
+import axios from "axios"
 
 let handler = async (m, { conn, usedPrefix }) => {
   try {
+  
     let menu = {}
     for (let plugin of Object.values(global.plugins)) {
       if (!plugin || !plugin.help) continue
@@ -13,23 +15,25 @@ let handler = async (m, { conn, usedPrefix }) => {
       }
     }
 
+    
     let uptimeSec = process.uptime()
     let hours = Math.floor(uptimeSec / 3600)
     let minutes = Math.floor((uptimeSec % 3600) / 60)
     let seconds = Math.floor(uptimeSec % 60)
     let uptimeStr = `${hours}h ${minutes}m ${seconds}s`
 
+    //-
     let botNameToShow = global.botname || "Bot"
     let bannerUrl = global.banner
-
     if (!bannerUrl) {
       return conn.reply(m.chat, "No se ha configurado un banner para este bot.", m)
     }
+    if (Array.isArray(bannerUrl)) bannerUrl = bannerUrl[0]
+    bannerUrl = String(bannerUrl)
 
-    if (Array.isArray(bannerUrl)) {
-      bannerUrl = bannerUrl[0]
-    }
-    bannerUrl = String(bannerUrl) 
+    
+    const response = await axios.get(bannerUrl, { responseType: 'arraybuffer' })
+    const buffer = Buffer.from(response.data, 'binary')
 
     let rolBot = conn.user.jid === global.conn.user.jid ? 'Principal 🅥' : 'Sub-Bot 🅑'
 
@@ -43,7 +47,7 @@ let handler = async (m, { conn, usedPrefix }) => {
       for (let plugin of menu[tag]) {
         if (!Array.isArray(plugin.help)) continue
         for (let cmd of plugin.help) {
-          if (Array.isArray(cmd)) cmd = cmd[0] 
+          if (Array.isArray(cmd)) cmd = cmd[0]
           txt += `> ┃⏤͟͟͞͞ ⊹ *${usedPrefix + String(cmd)}*\n`
         }
       }
@@ -52,7 +56,7 @@ let handler = async (m, { conn, usedPrefix }) => {
 
     await conn.sendMessage(
       m.chat,
-      { image: { url: bannerUrl }, caption: txt },
+      { image: buffer, caption: txt },
       { quoted: m }
     )
 
