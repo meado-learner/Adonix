@@ -30,8 +30,12 @@ let handler = async (m, { conn, usedPrefix }) => {
       try {
         const subBotConfig = JSON.parse(fs.readFileSync(configPath, 'utf-8'))
         if (subBotConfig.name) botNameToShow = subBotConfig.name
-        if (subBotConfig.banner) bannerUrl = String(subBotConfig.banner)
-        if (subBotConfig.video) videoUrl = String(subBotConfig.video)
+        if (subBotConfig.banner) {
+          bannerUrl = Array.isArray(subBotConfig.banner) ? subBotConfig.banner[0] : subBotConfig.banner
+        }
+        if (subBotConfig.video) {
+          videoUrl = Array.isArray(subBotConfig.video) ? subBotConfig.video[0] : subBotConfig.video
+        }
       } catch (e) { console.error(e) }
     }
 
@@ -56,19 +60,20 @@ let handler = async (m, { conn, usedPrefix }) => {
     if (videoUrl) {
       await conn.sendMessage(
         m.chat,
-        { video: { url: String(videoUrl) }, caption: txt, gifPlayback: false },
+        { video: { url: videoUrl }, caption: txt, gifPlayback: false },
         { quoted: m }
       )
     } else if (bannerUrl) {
       await conn.sendMessage(
         m.chat,
-        { image: { url: String(bannerUrl) }, caption: txt },
+        { image: { url: bannerUrl }, caption: txt },
         { quoted: m }
       )
-    } else {
+    } else if (global.banner) {
+      let defaultBanner = Array.isArray(global.banner) ? global.banner[0] : global.banner
       await conn.sendMessage(
         m.chat,
-        { image: { url: String(global.banner) }, caption: txt },
+        { image: { url: defaultBanner }, caption: txt },
         { quoted: m }
       )
     }
