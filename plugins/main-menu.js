@@ -1,6 +1,5 @@
 import moment from "moment-timezone"
 import fs from "fs"
-import path from "path"
 
 let handler = async (m, { conn, usedPrefix }) => {
   try {
@@ -21,15 +20,18 @@ let handler = async (m, { conn, usedPrefix }) => {
     let uptimeStr = `${hours}h ${minutes}m ${seconds}s`
 
     let botNameToShow = global.botname || "Bot"
-    let bannerUrl = global.banner || null
+    let bannerUrl = global.banner
 
     if (!bannerUrl) {
       return conn.reply(m.chat, "No se ha configurado un banner para este bot.", m)
     }
 
-    bannerUrl = Array.isArray(bannerUrl) ? bannerUrl[0] : bannerUrl
+    if (Array.isArray(bannerUrl)) {
+      bannerUrl = bannerUrl[0]
+    }
+    bannerUrl = String(bannerUrl) 
 
-    let rolBot = conn.user.jid == global.conn.user.jid ? 'Principal 🅥' : 'Sub-Bot 🅑'
+    let rolBot = conn.user.jid === global.conn.user.jid ? 'Principal 🅥' : 'Sub-Bot 🅑'
 
     let txt = `𝗛𝗼𝗹𝗮! 𝗦𝗼𝘆 *${botNameToShow}* (${rolBot})
 > ❏ 𝖠𝖼𝗍𝗂𝗏𝗂𝖽𝖺𝖽: ${uptimeStr}
@@ -41,6 +43,7 @@ let handler = async (m, { conn, usedPrefix }) => {
       for (let plugin of menu[tag]) {
         if (!Array.isArray(plugin.help)) continue
         for (let cmd of plugin.help) {
+          if (Array.isArray(cmd)) cmd = cmd[0] 
           txt += `> ┃⏤͟͟͞͞ ⊹ *${usedPrefix + String(cmd)}*\n`
         }
       }
