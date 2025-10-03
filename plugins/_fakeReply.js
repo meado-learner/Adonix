@@ -4,7 +4,8 @@ export async function before(m, { conn }) {
 
   global.rcanal = {
     contextInfo: {
-      isForwarded: true,
+      isForwarded: true, 
+      forwardingScore: 999, 
       forwardedNewsletterMessageInfo: {
         newsletterJid: id_canal,
         serverMessageId: 100,
