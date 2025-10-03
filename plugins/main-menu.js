@@ -1,5 +1,4 @@
 import moment from "moment-timezone"
-import axios from "axios"
 
 let handler = async (m, { conn, usedPrefix }) => {
   try {
@@ -24,14 +23,6 @@ let handler = async (m, { conn, usedPrefix }) => {
     if (!bannerUrl) return conn.reply(m.chat, "No se ha configurado un banner para este bot.", m)
     if (Array.isArray(bannerUrl)) bannerUrl = bannerUrl[0]
     if (typeof bannerUrl !== "string") bannerUrl = String(bannerUrl)
-
-    let buffer
-    try {
-      const response = await axios.get(bannerUrl, { responseType: 'arraybuffer' })
-      buffer = Buffer.from(response.data, 'binary')
-    } catch {
-      buffer = null
-    }
 
     let rolBot = conn.user.jid === global.conn.user.jid ? 'Principal 🅥' : 'Sub-Bot 🅑'
 
@@ -64,7 +55,7 @@ let handler = async (m, { conn, usedPrefix }) => {
             title: botNameToShow,
             body: global.author,
             mediaType: 2,
-            thumbnail: buffer || undefined,
+            thumbnailUrl: bannerUrl,
             sourceUrl: bannerUrl,
             renderLargerThumbnail: true
           }
