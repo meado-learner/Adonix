@@ -5,7 +5,7 @@ import fs from "fs"
 import path from "path"
 
 global.botNumber = ""
-global.owner = ["50493732693","51921826291",""]
+global.owner = ["50493732693","",""]
 global.suittag = [""]
 global.prems = []
 
@@ -26,8 +26,7 @@ export const defaultSettings = {
     etiqueta: "𝗔𝗱𝗼",
     currency: "𝖢𝗁𝗈𝖼𝗈𝖥𝗋𝖾𝗌𝖺𝗌",
     banner: "https://files.catbox.moe/1fd272.jpg",
-    icono: "https://files.catbox.moe/esmvnn.jpg",
-    catalogo: fs.readFileSync('./lib/catalogo.jpg')
+    icono: "https://files.catbox.moe/esmvnn.jpg"
 }
 
 Object.assign(global, defaultSettings)
