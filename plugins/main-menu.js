@@ -21,7 +21,7 @@ let handler = async (m, { conn, usedPrefix }) => {
     let uptimeStr = `${hours}h ${minutes}m ${seconds}s`
 
     let botNameToShow = global.nombre || ""
-    let bannerUrl = global.img || ""
+    let bannerUrl = global.banner || ""
     let videoUrl = null
 
     const senderBotNumber = conn.user.jid.split('@')[0]
@@ -39,18 +39,15 @@ let handler = async (m, { conn, usedPrefix }) => {
 
     
     let txt = `𝗛𝗼𝗹𝗮! 𝗦𝗼𝘆 *${botNameToShow}* (${rolBot})
-
-> ➭ 𝐇𝐨𝐫𝐚: ${moment.tz("America/Tegucigalpa").format("HH:mm:ss")}
-> ☆ 𝐅𝐞𝐜𝐡𝐚: ${moment.tz("America/Tegucigalpa").format("DD/MM/YYYY")}
-> ❏ 𝐀𝐜𝐭𝐢𝐯𝐢𝐝𝐚𝐝: ${uptimeStr}
-
-━━━━━━━━━━━━━━\n`
+> ❏ 𝖠𝖼𝗍𝗂𝗏𝗂𝖽𝖺𝖽: ${uptimeStr}
+> ☁︎︎ 𝖡𝖺𝗂𝗅𝖾𝗒𝗌: 𝖬𝗎𝗅𝗍𝗂 𝖣𝖾𝗏𝗂𝖼𝖾
+\n`
 
     for (let tag in menu) {
-      txt += `> ┃「✎」 *${tag.toUpperCase()}*\n\n`
+      txt += `> ┃✜ *${tag.toUpperCase()}*\n\n`
       for (let plugin of menu[tag]) {
         for (let cmd of plugin.help) {
-          txt += `> ┃ ❐ *${usedPrefix + cmd}*\n`
+          txt += `> ┃⏤͟͟͞͞ ⊹ *${usedPrefix + cmd}*\n`
         }
       }
       txt += `> ┗╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍\n\n`
@@ -71,14 +68,14 @@ let handler = async (m, { conn, usedPrefix }) => {
     } else {
       await conn.sendMessage(
         m.chat,
-        { image: { url: global.img }, caption: txt },
+        { image: { url: global.banner }, caption: txt },
         { quoted: m }
       )
     }
 
   } catch (e) {
     console.error(e)
-    conn.reply(m.chat, "» Ocurrió un error.", m)
+    conn.reply(m.chat, "✿ 𝖫𝗈 𝗌𝖾𝗇𝗍𝗂𝗆𝗈𝗌 𝖾𝗅 𝗆𝖾𝗇𝗎 𝗍𝗂𝖾𝗇𝖾 𝗎𝗇 𝖾𝗋𝗋𝗈𝗋. ", m)
   }
 }
 
