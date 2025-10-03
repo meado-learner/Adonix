@@ -25,7 +25,7 @@ export const defaultSettings = {
     author: "© mᥲძᥱ ᥕі𝗍һ ᑲᥡ 𝗔𝗱𝗼",
     etiqueta: "𝗔𝗱𝗼",
     currency: "𝖢𝗁𝗈𝖼𝗈𝖥𝗋𝖾𝗌𝖺𝗌",
-    banner: "https://files.catbox.moe/92vmpd.jpg",
+    banner: "https://files.catbox.moe/1fd272.jpg",
     icono: "https://files.catbox.moe/esmvnn.jpg",
     catalogo: fs.readFileSync('./lib/catalogo.jpg')
 }
