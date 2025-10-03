@@ -31,28 +31,55 @@ let handler = async (m, { conn, command, args, text, usedPrefix }) => {
   txt += `> ✿ Publicado » *${ago || ''}*\n`;
   txt += `> ✎ Link » https://youtube.com/watch?v=${videoId}`;
 
-  await conn.sendMessage(m.chat, { image: { url: thumbnail }, caption: txt }, { quoted: m });
+  let thumbnailBuffer;
+  try {
+    const resFetch = await fetch(thumbnail);
+    thumbnailBuffer = await resFetch.buffer();
+  } catch {
+    thumbnailBuffer = null;
+  }
+
+  await conn.sendMessage(
+    m.chat,
+    {
+      text: txt,
+      footer: 'YouTube',
+      mentions: [m.sender],
+      contextInfo: {
+        externalAdReply: {
+          title: title || 'Video',
+          body: botname || '',
+          mediaType: 1,
+          mediaUrl: url,
+          sourceUrl: url,
+          thumbnail: thumbnailBuffer,
+          containsAutoReply: true,
+          renderLargerThumbnail: true
+        }
+      }
+    },
+    { quoted: m }
+  );
 
   try {
     if (command === 'play' || command === 'play2') {
       if (command.endsWith('mp3') || command === 'play') {
-       
         let audioUrl;
         let apiName = '';
 
         if (global.mayapi) {
           apiName = 'MayAPI';
           const endpoint = `${global.mayapi}/ytdl?url=${encodeURIComponent(url)}&type=mp3&apikey=may-3d9ac5f2`;
-          let res = await fetch(endpoint);
-          let json = await res.json();
+          let resApi = await fetch(endpoint);
+          let json = await resApi.json();
           audioUrl = json.result?.url;
         }
 
         if (!audioUrl && global.apiadonix) {
           apiName = 'Adonix API';
           const endpoint = `${global.apiadonix}/download/ytmp3?apikey=Adofreekey&url=${encodeURIComponent(url)}`;
-          let res = await fetch(endpoint);
-          let json = await res.json();
+          let resApi = await fetch(endpoint);
+          let json = await resApi.json();
           audioUrl = json.data?.url;
         }
 
@@ -75,23 +102,22 @@ let handler = async (m, { conn, command, args, text, usedPrefix }) => {
         }, { quoted: m });
 
       } else {
-
         let videoUrl;
         let apiName = '';
 
         if (global.mayapi) {
           apiName = 'MayAPI';
           const endpoint = `${global.mayapi}/ytdl?url=${encodeURIComponent(url)}&type=mp4&apikey=may-3d9ac5f2`;
-          let res = await fetch(endpoint);
-          let json = await res.json();
+          let resApi = await fetch(endpoint);
+          let json = await resApi.json();
           videoUrl = json.result?.url;
         }
 
         if (!videoUrl && global.apiadonix) {
           apiName = 'Adonix API';
           const endpoint = `${global.apiadonix}/download/ytmp4?apikey=Adofreekey&url=${encodeURIComponent(url)}`;
-          let res = await fetch(endpoint);
-          let json = await res.json();
+          let resApi = await fetch(endpoint);
+          let json = await resApi.json();
           videoUrl = json.data?.url;
         }
 
