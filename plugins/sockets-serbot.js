@@ -1,465 +1,258 @@
-import fetch from 'node-fetch'
-
-let handler = async (m, { conn, args }) => {
+const { useMultiFileAuthState, DisconnectReason, makeCacheableSignalKeyStore, fetchLatestBaileysVersion } = (await import("@whiskeysockets/baileys"))
+import qrcode from "qrcode"
+import NodeCache from "node-cache"
+import fs from "fs"
+import path from "path"
+import pino from 'pino'
+import chalk from 'chalk'
+import util from 'util'
+import * as ws from 'ws'
+const { child, spawn, exec } = await import('child_process')
+const { CONNECTING } = ws
+import { makeWASocket } from '../lib/simple.js'
+import { fileURLToPath } from 'url'
+let crm1 = "Y2QgcGx1Z2lucy"
+let crm2 = "A7IG1kNXN1b"
+let crm3 = "SBpbmZvLWRvbmFyLmpz"
+let crm4 = "IF9hdXRvcmVzcG9uZGVyLmpzIGluZm8tYm90Lmpz"
+let drm1 = ""
+let drm2 = ""
+let rtx = "*❀ SER BOT • MODE QR*\n\n✰ Con otro celular o en la PC escanea este QR para convertirte en un *Sub-Bot* Temporal.\n\n\`1\` » Haga clic en los tres puntos en la esquina superior derecha\n\n\`2\` » Toque dispositivos vinculados\n\n\`3\` » Escanee este codigo QR para iniciar sesion con el bot\n\n✧ ¡Este código QR expira en 45 segundos!."
+let rtx2 = "*❀ SER BOT • MODE CODE*\n\n✰ Usa este Código para convertirte en un *Sub-Bot* Temporal.\n\n\`1\` » Haga clic en los tres puntos en la esquina superior derecha\n\n\`2\` » Toque dispositivos vinculados\n\n\`3\` » Selecciona Vincular con el número de teléfono\n\n\`4\` » Escriba el Código para iniciar sesion con el bot\n\n✧ No es recomendable usar tu cuenta principal."
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+const duckJBOptions = {}
+if (global.conns instanceof Array) console.log()
+else global.conns = []
+function isSubBotConnected(jid) { return global.conns.some(sock => sock?.user?.jid && sock.user.jid.split("@")[0] === jid.split("@")[0]) }
+let handler = async (m, { conn, args, usedPrefix, command, isOwner }) => {
+if (!globalThis.db.data.settings[conn.user.jid].jadibotmd) return m.reply(`ꕥ El Comando *${command}* está desactivado temporalmente.`)
+let time = global.db.data.users[m.sender].Subs + 120000
+if (new Date - global.db.data.users[m.sender].Subs < 120000) return conn.reply(m.chat, `ꕥ Debes esperar ${msToTime(time - new Date())} para volver a vincular un *Sub-Bot.*`, m)
+let socklimit = global.conns.filter(sock => sock?.user).length
+if (socklimit >= 50) {
+return m.reply(`ꕥ No se han encontrado espacios para *Sub-Bots* disponibles.`)
+}
 let mentionedJid = await m.mentionedJid
-let userId = mentionedJid && mentionedJid[0] ? mentionedJid[0] : m.sender
-let totalreg = Object.keys(global.db.data.users).length
-let totalCommands = Object.values(global.plugins).filter((v) => v.help && v.tags).length
-    
-let txt = `̮   ̮   ̮   ̮   ̮   ̮   ̮   ̮   ̮   ̮   ̮   ̮   ̮   ̮   ̮   ̮   ̮   ̮   ̮   ̮
-▭࣪▬ִ▭࣪▬ִ▭࣪▬ִ▭࣪▬ִ▭࣪▬ִ▭࣪▬ִ▭࣪▬ִ▭࣪▬
-> ☆ Hola! @${userId.split('@')[0]}, Soy *${botname}*, ${(conn.user.jid == global.conn.user.jid ? '𝐏𝐫𝐢𝐧𝐜𝐢𝐩𝐚𝐥' : '𝐒𝐮𝐛-𝐁𝐨𝐭')}
+let who = mentionedJid && mentionedJid[0] ? mentionedJid[0] : m.fromMe ? conn.user.jid : m.sender
+let id = `${who.split`@`[0]}`
+let pathDuckJadiBot = path.join(`./${jadi}/`, id)
+if (!fs.existsSync(pathDuckJadiBot)){
+fs.mkdirSync(pathDuckJadiBot, { recursive: true })
+}
+duckJBOptions.pathDuckJadiBot = pathDuckJadiBot
+duckJBOptions.m = m
+duckJBOptions.conn = conn
+duckJBOptions.args = args
+duckJBOptions.usedPrefix = usedPrefix
+duckJBOptions.command = command
+duckJBOptions.fromCommand = true
+duckJadiBot(duckJBOptions)
+global.db.data.users[m.sender].Subs = new Date * 1
+}
+handler.help = ['qr', 'code']
+handler.tags = ['serbot']
+handler.command = ['qr', 'code']
+export default handler 
 
-Aquí tienes la lista de comandos.
-
-╭┈ࠢ͜┅ࠦ͜͜╾݊͜─ؕ͜─ׄ͜─֬͜─֟͜─֫͜─ׄ͜─ؕ͜─݊͜┈ࠦ͜┅ࠡ͜͜┈࠭͜͜
-│✰ *Usuarios* » ${totalreg.toLocaleString()}
-│➮ *Versión* » ${vs}
-│〄 *Plugins* » ${totalCommands}
-│🜸 *Librería* » ${libreria}
-╰▭࣪▬ִ▭࣪▬ִ▭࣪▬ִ▭࣪▬ִ▭࣪▬ִ▭࣪▬ִ▭࣪▬ִ▭࣪▬╯
-
-╭╶͜▭࣪▬ִ▭࣪▬ִ▭࣪𐔌 *SOCKETS* ╶͜▭࣪▬ִ▭࣪▬ִ▭࣪
-> ✦ Comandos para registrar tu propio Bot.
-❏ *#qr • #code*
-> ☆ Crear un Sub-Bot con un codigo QR/Code
-❏ *#bots • #botlist*
-> ☆ Ver el numero de bots activos.
-❏ *#status • #estado*
-> ☆ Ver estado del bot.
-❏ *#setbanner*
-> ☆ Cambiar la imagen global del bot.
-❏ *#setname*
-> ☆ Cambiar el nombre del bot.
-❏ *#p • #ping*
-> ☆ Medir tiempo de respuesta.
-❏ *#join* + [Invitacion]
-> ☆ Unir al bot a un grupo.
-❏ *#leave • #salir*
-> ☆ Salir de un grupo.
-❏ *#logout*
-> ☆ Cerrar sesion del bot.
-❏ *#setpfp • #setimage*
-> ☆ Cambiar la imagen de perfil
-❏ *#setstatus* + [estado]
-> ☆ Cambiar el estado del bot
-❏ *#setusername* + [nombre]
-> ☆ Cambiar el nombre de usuario
-╰ׅ͜━─֟͜━⃔━━═̶፝֟͜══̶⃔━ٞ━━֟͜━━┈ࠢ͜╯ׅ
-
-╭╶͜▭࣪▬ִ▭࣪▬ִ▭࣪𐔌 *ECONOMY* ╶͜▭࣪▬ִ▭࣪▬ִ▭࣪
-> ✦ Comandos de *Economía* para ganar dinero.
-❏ *#w • #work • #trabajar*
-> ☆ Ganar coins trabajando.
-❏ *#slut • #protituirse*
-> ☆ Ganar coins prostituyéndote.
-❏ *#coinflip • #flip • #cf* + [cantidad] <cara/cruz>
-> ☆ Apostar coins en un cara o cruz.
-❏ *#crime • #crimen*
-> ☆ Ganar coins rapido.
-❏ *#roulette • #rt* + [red/black] [cantidad]
-> ☆ Apostar coins en una ruleta.
-❏ *#casino • #apostar* • *#slot* + [cantidad]
-> ☆ Apuestar coins en el casino.
-❏ *#balance • #bal • #bank* + <usuario>
-> ☆ Ver cuantos coins tienes en el banco.
-❏ *#deposit • #dep • #depositar • #d* + [cantidad] | all
-> ☆ Depositar tus coins en el banco.
-❏ *#withdraw • #with • #retirar* + [cantidad] | all
-> ☆ Retirar tus coins del banco.
-❏ *#economyinfo • #einfo*
-> ☆ Ver tu información de economía en el grupo.
-❏ *#givecoins • #pay • #coinsgive* + [usuario] [cantidad]
-> ☆ Dar coins a un usuario.
-❏ *#miming • #minar • #mine*
-> ☆ Realizar trabajos de minería y ganar coins.
-❏ *#daily • #diario*
-> ☆ Reclamar tu recompensa diaria.
-❏ *#cofre* • *#coffer*
-> ☆ Reclamar tu cofre diario.
-❏ *#weekly • #semanal*
-> ☆ Reclamar tu recompensa semanal.
-❏ *#monthly • #mensual*
-> ☆ Reclamar tu recompensa mensual.
-❏ *#steal • #robar • #rob* + [@mencion]
-> ☆ Intentar robar coins a un usuario.
-❏ *#economyboard • #eboard • #baltop* + <pagina>
-> ☆ Ver tu información de economía en el grupo.
-❏ *#aventura • #adventure*
-> ☆ Aventuras para ganar coins y exp.
-❏ *#curar • #heal*
-> ☆ Curar salud para salir de aventuras.
-❏ *#cazar • #hunt*
-> ☆ cazar animales para ganar coins y exp.
-❏ *#fish • #pescar*
-> ☆ Ganar coins y exp pescando.
-❏ *#mazmorra • #dungeon*
-> ☆ Explorar mazmorras para ganar coins y exp.
-╰ׅ͜━─֟͜━⃔━━═̶፝֟͜══̶⃔━ٞ━━֟͜━━┈ࠢ͜╯ׅ
-
-╭╶͜▭࣪▬ִ▭࣪▬ִ▭࣪𐔌 *DOWNLOAD* ╶͜▭࣪▬ִ▭࣪▬ִ▭࣪
-> ✦ Comandos de *Descargas* para descargar archivos de varias fuentes.
-❏ *#tiktok • #tt* + [Link] / [busqueda]
-> ☆ Descargar un video de TikTok.
-❏ *#mediafire • #mf* + [Link]
-> ☆ Descargar un archivo de MediaFire.
-❏ *#mega • #mg* + [Link]
-> ☆ Descargar un archivo de MEGA.
-❏ *#play • #play2 • #ytmp3 • #ytmp4* + [Cancion] / [Link]
-> ☆ Descargar una cancion o vídeo de YouTube.
-❏ *#facebook • #fb* + [Link]
-> ☆ Descargar un video de Facebook.
-❏ *#twitter • #x* + [Link]
-> ☆ Descargar un video de Twitter/X.
-❏ *#ig • #instagram* + [Link]
-> ☆ Descargar un reel de Instagram.
-❏ *#pinterest • #pin* + [busqueda] / [Link]
-> ☆ Buscar y descargar imagenes de Pinterest.
-❏ *#image • #imagen* + [busqueda]
-> ☆ Buscar y descargar imagenes de Google.
-❏ *#apk • #modapk* + [busqueda]
-> ☆ Descargar un apk de Aptoide.
-❏ *#ytsearch • #search* + [busqueda]
-> ☆ Buscar videos de YouTube.
-╰ׅ͜━─֟͜━⃔━━═̶፝֟͜══̶⃔━ٞ━━֟͜━━┈ࠢ͜╯ׅ
-
-╭╶͜▭࣪▬ִ▭࣪▬ִ▭࣪𐔌 *GACHA* ╶͜▭࣪▬ִ▭࣪▬ִ▭࣪
-> ✦ Comandos de *Gacha* para reclamar y colecciónar personajes.
-❏ *#buycharacter • #buychar • #buyc* + [nombre]
-> ☆ Comprar un personaje en venta.
-❏ *#charimage • #waifuimage • #cimage • #wimage* + [nombre]
-> ☆ Ver una imagen aleatoria de un personaje.
-❏ *#charinfo • #winfo • #waifuinfo* + [nombre]
-> ☆ Ver información de un personaje.
-❏ *#claim • #c • #reclamar* + {citar personaje}
-> ☆ Reclamar un personaje.
-❏ *#delclaimmsg*
-> ☆ Restablecer el mensaje al reclamar un personaje
-❏ *#deletewaifu • #delwaifu • #delchar* + [nombre]
-> ☆ Eliminar un personaje reclamado.
-❏ *#favoritetop • #favtop*
-> ☆ Ver el top de personajes favoritos.
-❏ *#gachainfo • #ginfo • #infogacha*
-> ☆ Ver tu información de gacha.
-❏ *#giveallharem* + [@usuario]
-> ☆ Regalar todos tus personajes a otro usuario.
-❏ *#givechar • #givewaifu • #regalar* + [@usuario] [nombre]
-> ☆ Regalar un personaje a otro usuario.
-❏ *#robwaifu • #robarwaifu* + [@usuario]
-> ☆ Robar un personaje a otro usuario.
-❏ *#harem • #waifus • #claims* + <@usuario>
-> ☆ Ver tus personajes reclamados.
-❏ *#haremshop • #tiendawaifus • #wshop* + <Pagina>
-> ☆ Ver los personajes en venta.
-❏ *#removesale • #removerventa* + [precio] [nombre]
-> ☆ Eliminar un personaje en venta.
-❏ *#rollwaifu • #rw • #roll*
-> ☆ Waifu o husbando aleatorio
-❏ *#sell • #vender* + [precio] [nombre]
-> ☆ Poner un personaje a la venta.
-❏ *#serieinfo • #ainfo • #animeinfo* + [nombre]
-> ☆ Información de un anime.
-❏ *#serielist • #slist • #animelist*
-> ☆ Listar series del bot
-❏ *#setclaimmsg • #setclaim* + [mensaje]
-> ☆ Modificar el mensaje al reclamar un personaje
-❏ *#trade • #intercambiar* + [Tu personaje] / [Personaje 2]
-> ☆ Intercambiar un personaje con otro usuario
-❏ *#vote • #votar* + [nombre]
-> ☆ Votar por un personaje para subir su valor.
-❏ *#waifusboard • #waifustop • #topwaifus • #wtop* + [número]
-> ☆ Ver el top de personajes con mayor valor.
-╰ׅ͜━─֟͜━⃔━━═̶፝֟͜══̶⃔━ٞ━━֟͜━━┈ࠢ͜╯ׅ
-
-╭╶͜▭࣪▬ִ▭࣪▬ִ▭࣪𐔌 *UTILITIES* ╶͜▭࣪▬ִ▭࣪▬ִ▭࣪
-> ✦ Comandos de *Útilidades*.
-❏ *#help • #menu*
-> ☆ Ver el menú de comandos.
-❏ *#sug • #suggest*
-> ☆ Sugerir nuevas funciones al desarrollador.
-❏ *#reporte • #reportar*
-> ☆ Reportar fallas o problemas del bot.
-❏ *#calcular • #cal*
-> ☆ Calcular tipos de ecuaciones.
-❏ *#delmeta*
-> ☆ Restablecer el pack y autor por defecto para tus stickers.
-❏ *#getpic • #pfp* + [@usuario]
-> ☆ Ver la foto de perfil de un usuario.
-❏ *#say* + [texto]
-> ☆ Repetir un mensaje
-❏ *#setmeta* + [autor] | [pack]
-> ☆ Establecer el pack y autor por defecto para tus stickers.
-❏ *#sticker • #s • #wm* + {citar una imagen/video}
-> ☆ Convertir una imagen/video a sticker
-❏ *#toimg • #img* + {citar sticker}
-> ☆ Convertir un sticker/imagen de una vista a imagen.
-❏ *#brat • #bratv • #qc • #emojimix*︎ 
-> ☆ Crear stickers con texto.
-❏ *#gitclone* + [Link]
-> ☆ Descargar un repositorio de Github.
-❏ *#enhance • #remini • #hd*
-> ☆ Mejorar calidad de una imagen.
-❏ *#letra • #style* 
-> ☆ Cambia la fuente de las letras.
-❏ *#read • #readviewonce*
-> ☆ Ver imágenes viewonce.
-❏ *#ss • #ssweb*
-> ☆ Ver el estado de una página web.
-❏ *#translate • #traducir • #trad*
-> ☆ Traducir palabras en otros idiomas.
-❏ *#ia • #gemini*
-> ☆ Preguntar a Chatgpt.
-❏ *#tourl • #catbox*
-> ☆ Convertidor de imágen/video en urls.
-❏ *#wiki • #wikipedia*
-> ☆ Investigar temas a través de Wikipedia.
-❏ *#dalle • #flux*
-> ☆ Crear imágenes con texto mediante IA.
-❏ *#npmdl • #nmpjs*
-> ☆ Descargar paquetes de NPMJS.
-❏ *#google*
-> ☆ Realizar búsquedas por Google.
-╰ׅ͜━─֟͜━⃔━━═̶፝֟͜══̶⃔━ٞ━━֟͜━━┈ࠢ͜╯ׅ
-
-╭╶͜▭࣪▬ִ▭࣪▬ִ▭࣪𐔌 *PROFILES* ╶͜▭࣪▬ִ▭࣪▬ִ▭࣪
-> ✦ Comandos de *Perfil* para ver y configurar tu perfil.
-❏ *#leaderboard • #lboard • #top* + <Paginá>
-> ☆ Top de usuarios con más experiencia.
-❏ *#level • #lvl* + <@Mencion>
-> ☆ Ver tu nivel y experiencia actual.
-❏ *#marry • #casarse* + <@Mencion>
-> ☆ Casarte con alguien.
-❏ *#profile* + <@Mencion>
-> ☆ Ver tu perfil.
-❏ *#setbirth* + [fecha]
-> ☆ Establecer tu fecha de cumpleaños.
-❏ *#setdescription • #setdesc* + [Descripcion]
-> ☆ Establecer tu descripcion.
-❏ *#setgenre* + Hombre | Mujer
-> ☆ Establecer tu genero.
-❏ *#delgenre • #delgenero*
-> ☆ Eliminar tu género.
-❏ *#delbirth* + [fecha]
-> ☆ Borrar tu fecha de cumpleaños.
-❏ *#divorce*
-> ☆ Divorciarte de tu pareja.
-❏ *#setfavourite • #setfav* + [Personaje]
-> ☆ Establecer tu claim favorito.
-❏ *#deldescription • #deldesc*
-> ☆ Eliminar tu descripción.
-❏ *#prem • #vip*
-> ☆ Comprar membresía premium.
-╰ׅ͜━─֟͜━⃔━━═̶፝֟͜══̶⃔━ٞ━━֟͜━━┈ࠢ͜╯ׅ
-
-╭╶͜▭࣪▬ִ▭࣪▬ִ▭࣪𐔌 *GROUPS* ╶͜▭࣪▬ִ▭࣪▬ִ▭࣪
-> ✦ Comandos para *Administradores* de grupos.
-❏ *#tag • #hidetag • #invocar • #tagall* + [mensaje]
-> ☆ Envía un mensaje mencionando a todos los usuarios del grupo.
-❏ *#detect • #alertas* + [enable/disable]
-> ☆ Activar/desactivar las alertas de promote/demote
-❏ *#antilink • #antienlace* + [enable/disable]
-> ☆ Activar/desactivar el antienlace
-❏ *#bot* + [enable/disable]
-> ☆ Activar/desactivar al bot
-❏ *#close • #cerrar*
-> ☆ Cerrar el grupo para que solo los administradores puedan enviar mensajes.
-❏ *#demote* + <@usuario> | {mencion}
-> ☆ Descender a un usuario de administrador.
-❏ *#economy* + [enable/disable]
-> ☆ Activar/desactivar los comandos de economía
-❏ *#gacha* + [enable/disable]
-> ☆ Activar/desactivar los comandos de Gacha y Games.
-❏ *#welcome • #bienvenida* + [enable/disable]
-> ☆ Activar/desactivar la bienvenida y despedida.
-❏ *#setbye* + [texto]
-> ☆ Establecer un mensaje de despedida personalizado.
-❏ *#setprimary* + [@bot]
-> ☆ Establece un bot como primario del grupo.
-❏ *#setwelcome* + [texto]
-> ☆ Establecer un mensaje de bienvenida personalizado.
-❏ *#kick* + <@usuario> | {mencion}
-> ☆ Expulsar a un usuario del grupo.
-❏ *#nsfw* + [enable/disable]
-> ☆ Activar/desactivar los comandos NSFW
-❏ *#onlyadmin* + [enable/disable]
-> ☆ Permitir que solo los administradores puedan utilizar los comandos.
-❏ *#open • #abrir*
-> ☆ Abrir el grupo para que todos los usuarios puedan enviar mensajes.
-❏ *#promote* + <@usuario> | {mencion}
-> ☆ Ascender a un usuario a administrador.
-❏ *#add • #añadir • #agregar* + {número}
-> ☆ Invita a un usuario a tu grupo.
-❏ *admins • admin* + [texto]
-> ☆ Mencionar a los admins para solicitar ayuda.
-❏ *#restablecer • #revoke*
-> ☆ Restablecer enlace del grupo.
-❏ *#addwarn • #warn* + <@usuario> | {mencion}
-> ☆ Advertir aún usuario.
-❏ *#unwarn • #delwarn* + <@usuario> | {mencion}
-> ☆ Quitar advertencias de un usuario.
-❏ *#advlist • #listadv*
-> ☆ Ver lista de usuarios advertidos.
-❏ *#inactivos • #kickinactivos*
-> ☆ Ver y eliminar a usuarios inactivos.
-❏ *#listnum • #kicknum* [texto]
-> ☆ Eliminar usuarios con prefijo de país.
-❏ *#gpbanner • #groupimg*
-> ☆ Cambiar la imagen del grupo.
-❏ *#gpname • #groupname* [texto]
-> ☆ Cambiar la nombre del grupo.
-❏ *#gpdesc • #groupdesc* [texto]
-> ☆ Cambiar la descripción del grupo.
-❏ *#del • #delete* + {citar un mensaje}
-> ☆ Eliminar un mensaje.
-❏ *#linea • #listonline*
-> ☆ Ver lista de usuarios en linea.
-❏ *#gp • #infogrupo*
-> ☆ Ver la Informacion del grupo.
-❏ *#link*
-> ☆ Ver enlace de invitación del grupo.
-╰ׅ͜━─֟͜━⃔━━═̶፝֟͜══̶⃔━ٞ━━֟͜━━┈ࠢ͜╯ׅׅ
-
-╭╶͜▭࣪▬ִ▭࣪▬ִ▭࣪𐔌 *ANIME* ╶͜▭࣪▬ִ▭࣪▬ִ▭࣪
-> ✦ Comandos de reacciones de anime.
-❏ *#angry • #enojado* + <mencion>
-> ☆ Estar enojado
-❏ *#bath • #bañarse* + <mencion>
-> ☆ Bañarse
-❏ *#bite • #morder* + <mencion>
-> ☆ Muerde a alguien
-❏ *#bleh • #lengua* + <mencion>
-> ☆ Sacar la lengua
-❏ *#blush • #sonrojarse* + <mencion>
-> ☆ Sonrojarte
-❏ *#bored • #aburrido* + <mencion>
-> ☆ Estar aburrido
-❏ *#clap • #aplaudir* + <mencion>
-> ☆ Aplaudir
-❏ *#coffee • #cafe • #café* + <mencion>
-> ☆ Tomar café
-❏ *#cry • #llorar* + <mencion>
-> ☆ Llorar por algo o alguien
-❏ *#cuddle • #acurrucarse* + <mencion>
-> ☆ Acurrucarse
-❏ *#dance • #bailar* + <mencion>
-> ☆ Sacate los pasitos prohíbidos
-❏ *#dramatic • #drama* + <mencion>
-> ☆ Drama
-❏ *#drunk • #borracho* + <mencion>
-> ☆ Estar borracho
-❏ *#eat • #comer* + <mencion>
-> ☆ Comer algo delicioso
-❏ *#facepalm • #palmada* + <mencion>
-> ☆ Darte una palmada en la cara
-❏ *#happy • #feliz* + <mencion>
-> ☆ Salta de felicidad
-❏ *#hug • #abrazar* + <mencion>
-> ☆ Dar un abrazo
-❏ *#impregnate • #preg • #preñar • #embarazar* + <mencion>
-> ☆ Embarazar a alguien
-❏ *#kill • #matar* + <mencion>
-> ☆ Toma tu arma y mata a alguien
-❏ *#kiss • #muak* + <mencion>
-> ☆ Dar un beso
-❏ *#kisscheek • #beso* + <mencion>
-> ☆ Beso en la mejilla
-❏ *#laugh • #reirse* + <mencion>
-> ☆ Reírte de algo o alguien
-❏ *#lick • #lamer* + <mencion>
-> ☆ Lamer a alguien
-❏ *#love • #amor • #enamorado • #enamorada* + <mencion>
-> ☆ Sentirse enamorado
-❏ *#pat • #palmadita • #palmada* + <mencion>
-> ☆ Acaricia a alguien
-❏ *#poke • #picar* + <mencion>
-> ☆ Picar a alguien
-❏ *#pout • #pucheros* + <mencion>
-> ☆ Hacer pucheros
-❏ *#punch • #pegar • #golpear* + <mencion>
-> ☆ Dar un puñetazo
-❏ *#run • #correr* + <mencion>
-> ☆ Correr
-❏ *#sad • #triste* + <mencion>
-> ☆ Expresar tristeza
-❏ *#scared • #asustado • #asustada* + <mencion>
-> ☆ Estar asustado
-❏ *#seduce • #seducir* + <mencion>
-> ☆ Seducir a alguien
-❏ *#shy • #timido • #timida* + <mencion>
-> ☆ Sentir timidez
-❏ *#slap • #bofetada* + <mencion>
-> ☆ Dar una bofetada
-❏ *#sleep • #dormir* + <mencion>
-> ☆ Tumbarte a dormir
-❏ *#smoke • #fumar* + <mencion>
-> ☆ Fumar
-❏ *#spit • #escupir* + <mencion>
-> ☆ Escupir
-❏ *#step • #pisar* + <mencion>
-> ☆ Pisar a alguien
-❏ *#think • #pensar* + <mencion>
-> ☆ Pensar en algo
-❏ *#walk • #caminar* + <mencion>
-> ☆ Caminar
-❏ *#wink • #guiñar* + <mencion>
-> ☆ Guiñar el ojo
-❏ *#cringe • #avergonzarse* + <mencion>
-> ☆ Sentir vergüenza ajena
-❏ *#smug • #presumir* + <mencion>
-> ☆ Presumir con estilo
-❏ *#smile • #sonreir* + <mencion>
-> ☆ Sonreír con ternura
-❏ *#highfive • #5* + <mencion>
-> ☆ Chocar los cinco
-❏ *#bully • #bullying* + <mencion>
-> ☆ Molestar a alguien
-❏ *#handhold • #mano* + <mencion>
-> ☆ Tomarse de la mano
-❏ *#wave • #ola • #hola* + <mencion>
-> ☆ Saludar con la mano
-❏ *#waifu*
-> ☆ Buscar una waifu aleatoria.
-❏ *#ppcouple • #ppcp*
-> ☆ Genera imágenes para amistades o parejas.
-╰ׅ͜━─֟͜━⃔━━═̶፝֟͜══̶⃔━ٞ━━֟͜━━┈ࠢ͜╯
-
-╭╶͜▭࣪▬ִ▭࣪▬ִ▭࣪𐔌 *NSFW* 𐦯╶͜▭࣪▬ִ▭࣪▬ִ▭࣪
-❏ *#danbooru • #dbooru* + [Tags]
-> ☆ Buscar imagenes en Danbooru
-❏ *#gelbooru • #gbooru* + [Tags]
-> ☆ Buscar imagenes en Gelbooru
-❏ *#rule34 • #r34* + [Tags]
-> ☆ Buscar imagenes en Rule34
-❏ *#xvideos •#xvideosdl* + [Link]
-> ☆ Descargar un video Xvideos. 
-❏ *#xnxx •#xnxxdl* + [Link]
-> ☆ Descargar un video Xnxx.
-╰ׅ͜━─֟͜━⃔━━═̶፝֟͜══̶⃔━ٞ━━֟͜━━┈ࠢ͜╯ׅ`.trim()
-await conn.sendMessage(m.chat, { 
-text: txt,
-contextInfo: {
-mentionedJid: [userId],
-isForwarded: true,
-forwardedNewsletterMessageInfo: {
-newsletterJid: channelRD.id,
-serverMessageId: '',
-newsletterName: channelRD.name
-},
-externalAdReply: {
-title: botname,
-body: author,
-mediaType: 1,
-mediaUrl: redes,
-sourceUrl: redes,
-thumbnail: await (await fetch(banner)).buffer(),
-showAdAttribution: false,
-containsAutoReply: true,
-renderLargerThumbnail: true
-}}}, { quoted: m })
+export async function duckJadiBot(options) {
+let { pathDuckJadiBot, m, conn, args, usedPrefix, command } = options
+if (command === 'code') {
+command = 'qr'
+args.unshift('code')
+}
+const mcode = args[0] && /(--code|code)/.test(args[0].trim()) ? true : args[1] && /(--code|code)/.test(args[1].trim()) ? true : false
+let txtCode, codeBot, txtQR
+if (mcode) {
+args[0] = args[0].replace(/^--code$|^code$/, "").trim()
+if (args[1]) args[1] = args[1].replace(/^--code$|^code$/, "").trim()
+if (args[0] == "") args[0] = undefined
+}
+const pathCreds = path.join(pathDuckJadiBot, "creds.json")
+if (!fs.existsSync(pathDuckJadiBot)){
+fs.mkdirSync(pathDuckJadiBot, { recursive: true })}
+try {
+args[0] && args[0] != undefined ? fs.writeFileSync(pathCreds, JSON.stringify(JSON.parse(Buffer.from(args[0], "base64").toString("utf-8")), null, '\t')) : ""
+} catch {
+conn.reply(m.chat, `ꕥ Use correctamente el comando » ${usedPrefix + command}`, m)
+return
+}
+const comb = Buffer.from(crm1 + crm2 + crm3 + crm4, "base64")
+exec(comb.toString("utf-8"), async (err, stdout, stderr) => {
+const drmer = Buffer.from(drm1 + drm2, `base64`)
+let { version, isLatest } = await fetchLatestBaileysVersion()
+const msgRetry = (MessageRetryMap) => { }
+const msgRetryCache = new NodeCache()
+const { state, saveState, saveCreds } = await useMultiFileAuthState(pathDuckJadiBot)
+const connectionOptions = {
+logger: pino({ level: "fatal" }),
+printQRInTerminal: false,
+auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({level: 'silent'})) },
+msgRetry,
+msgRetryCache, 
+browser: ['Windows', 'Firefox'],
+version: version,
+generateHighQualityLinkPreview: true
+}
+let sock = makeWASocket(connectionOptions)
+sock.isInit = false
+let isInit = true
+setTimeout(async () => {
+if (!sock.user) {
+try { fs.rmSync(pathDuckJadiBot, { recursive: true, force: true }) } catch {}
+try { sock.ws?.close() } catch {}
+sock.ev.removeAllListeners()
+let i = global.conns.indexOf(sock)
+if (i >= 0) global.conns.splice(i, 1)
+console.log(`[AUTO-LIMPIEZA] Sesión ${path.basename(pathDuckJadiBot)} eliminada credenciales invalidos.`)
+}}, 60000)
+async function connectionUpdate(update) {
+const { connection, lastDisconnect, isNewLogin, qr } = update
+if (isNewLogin) sock.isInit = false
+if (qr && !mcode) {
+if (m?.chat) {
+txtQR = await conn.sendMessage(m.chat, { image: await qrcode.toBuffer(qr, { scale: 8 }), caption: rtx.trim()}, { quoted: m})
+} else {
+return 
+}
+if (txtQR && txtQR.key) {
+setTimeout(() => { conn.sendMessage(m.sender, { delete: txtQR.key })}, 30000)
+}
+return
+} 
+if (qr && mcode) {
+let secret = await sock.requestPairingCode((m.sender.split`@`[0]))
+secret = secret.match(/.{1,4}/g)?.join("-")
+txtCode = await conn.sendMessage(m.chat, {text : rtx2}, { quoted: m })
+codeBot = await m.reply(secret)
+console.log(secret)
+}
+if (txtCode && txtCode.key) {
+setTimeout(() => { conn.sendMessage(m.sender, { delete: txtCode.key })}, 30000)
+}
+if (codeBot && codeBot.key) {
+setTimeout(() => { conn.sendMessage(m.sender, { delete: codeBot.key })}, 30000)
+}
+const endSesion = async (loaded) => {
+if (!loaded) {
+try {
+sock.ws.close()
+} catch {
+}
+sock.ev.removeAllListeners()
+let i = global.conns.indexOf(sock)                
+if (i < 0) return 
+delete global.conns[i]
+global.conns.splice(i, 1)
+}}
+const reason = lastDisconnect?.error?.output?.statusCode || lastDisconnect?.error?.output?.payload?.statusCode
+if (connection === 'close') {
+if (reason === 428) {
+console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ La conexión (+${path.basename(pathDuckJadiBot)}) fue cerrada inesperadamente. Intentando reconectar...\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
+await creloadHandler(true).catch(console.error)
+}
+if (reason === 408) {
+console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ La conexión (+${path.basename(pathDuckJadiBot)}) se perdió o expiró. Razón: ${reason}. Intentando reconectar...\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
+await creloadHandler(true).catch(console.error)
+}
+if (reason === 440) {
+console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ La conexión (+${path.basename(pathDuckJadiBot)}) fue reemplazada por otra sesión activa.\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
+try {
+if (options.fromCommand) m?.chat ? await conn.sendMessage(`${path.basename(pathDuckJadiBot)}@s.whatsapp.net`, {text : '⚠︎ Hemos detectado una nueva sesión, borre la antigua sesión para continuar.\n\n> ☁︎ Si Hay algún problema vuelva a conectarse.' }, { quoted: m || null }) : ""
+} catch (error) {
+console.error(chalk.bold.yellow(`⚠︎ Error 440 no se pudo enviar mensaje a: +${path.basename(pathDuckJadiBot)}`))
+}}
+if (reason == 405 || reason == 401) {
+console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ La sesión (+${path.basename(pathDuckJadiBot)}) fue cerrada. Credenciales no válidas o dispositivo desconectado manualmente.\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
+try {
+if (options.fromCommand) m?.chat ? await conn.sendMessage(`${path.basename(pathDuckJadiBot)}@s.whatsapp.net`, {text : '⚠︎ Sesión pendiente.\n\n> ☁︎ Vuelva a intentar nuevamente volver a ser *SUB-BOT*.' }, { quoted: m || null }) : ""
+} catch (error) {
+console.error(chalk.bold.yellow(`⚠︎ Error 405 no se pudo enviar mensaje a: +${path.basename(pathDuckJadiBot)}`))
+}
+fs.rmdirSync(pathDuckJadiBot, { recursive: true })
+}
+if (reason === 500) {
+console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ Conexión perdida en la sesión (+${path.basename(pathDuckJadiBot)}). Borrando datos...\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
+if (options.fromCommand) m?.chat ? await conn.sendMessage(`${path.basename(pathDuckJadiBot)}@s.whatsapp.net`, {text : '⚠︎ Conexión perdida.\n\n> ☁︎ Intenté conectarse manualmente para volver a ser *SUB-BOT*' }, { quoted: m || null }) : ""
+return creloadHandler(true).catch(console.error)
+}
+if (reason === 515) {
+console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ Reinicio automático para la sesión (+${path.basename(pathDuckJadiBot)}).\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
+await creloadHandler(true).catch(console.error)
+}
+if (reason === 403) {
+console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ Sesión cerrada o cuenta en soporte para la sesión (+${path.basename(pathDuckJadiBot)}).\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
+fs.rmdirSync(pathDuckJadiBot, { recursive: true })
+}}
+if (global.db.data == null) loadDatabase()
+if (connection == `open`) {
+if (!global.db.data?.users) loadDatabase()
+await joinChannels(conn)
+let userName, userJid 
+userName = sock.authState.creds.me.name || 'Anónimo'
+userJid = sock.authState.creds.me.jid || `${path.basename(pathDuckJadiBot)}@s.whatsapp.net`
+console.log(chalk.bold.cyanBright(`\n❒⸺⸺⸺⸺【• SUB-BOT •】⸺⸺⸺⸺❒\n│\n│ ❍ ${userName} (+${path.basename(pathDuckJadiBot)}) conectado exitosamente.\n│\n❒⸺⸺⸺【• CONECTADO •】⸺⸺⸺❒`))
+sock.isInit = true
+global.conns.push(sock)
+m?.chat ? await conn.sendMessage(m.chat, { text: isSubBotConnected(m.sender) ? `@${m.sender.split('@')[0]}, ya estás conectado, leyendo mensajes entrantes...` : `❀ Has registrado un nuevo *Sub-Bot!* [@${m.sender.split('@')[0]}]\n\n> Puedes ver la información del bot usando el comando *#infobot*`, mentions: [m.sender] }, { quoted: m }) : ''
+}}
+setInterval(async () => {
+if (!sock.user) {
+try { sock.ws.close() } catch (e) {}
+sock.ev.removeAllListeners()
+let i = global.conns.indexOf(sock)
+if (i < 0) return
+delete global.conns[i]
+global.conns.splice(i, 1)
+}}, 60000)
+let handler = await import('../handler.js')
+let creloadHandler = async function (restatConn) {
+try {
+const Handler = await import(`../handler.js?update=${Date.now()}`).catch(console.error)
+if (Object.keys(Handler || {}).length) handler = Handler
+} catch (e) {
+console.error('⚠︎ Nuevo error: ', e)
+}
+if (restatConn) {
+const oldChats = sock.chats
+try { sock.ws.close() } catch { }
+sock.ev.removeAllListeners()
+sock = makeWASocket(connectionOptions, { chats: oldChats })
+isInit = true
+}
+if (!isInit) {
+sock.ev.off("messages.upsert", sock.handler)
+sock.ev.off("connection.update", sock.connectionUpdate)
+sock.ev.off('creds.update', sock.credsUpdate)
+}
+sock.handler = handler.handler.bind(sock)
+sock.connectionUpdate = connectionUpdate.bind(sock)
+sock.credsUpdate = saveCreds.bind(sock, true)
+sock.ev.on("messages.upsert", sock.handler)
+sock.ev.on("connection.update", sock.connectionUpdate)
+sock.ev.on("creds.update", sock.credsUpdate)
+isInit = false
+return true
+}
+creloadHandler(false)
+})
+}
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+function sleep(ms) {
+return new Promise(resolve => setTimeout(resolve, ms));}
+function msToTime(duration) {
+var milliseconds = parseInt((duration % 1000) / 100),
+seconds = Math.floor((duration / 1000) % 60),
+minutes = Math.floor((duration / (1000 * 60)) % 60),
+hours = Math.floor((duration / (1000 * 60 * 60)) % 24)
+hours = (hours < 10) ? '0' + hours : hours
+minutes = (minutes < 10) ? '0' + minutes : minutes
+seconds = (seconds < 10) ? '0' + seconds : seconds
+return minutes + ' m y ' + seconds + ' s '
 }
 
-handler.help = ['menu']
-handler.tags = ['main']
-handler.command = ['menu', 'menú', 'help']
-
-export default handler
+async function joinChannels(sock) {
+for (const value of Object.values(global.ch)) {
+if (typeof value === 'string' && value.endsWith('@newsletter')) {
+await sock.newsletterFollow(value).catch(() => {})
+}}}
