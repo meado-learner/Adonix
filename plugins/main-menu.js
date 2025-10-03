@@ -30,14 +30,13 @@ let handler = async (m, { conn, usedPrefix }) => {
       try {
         const subBotConfig = JSON.parse(fs.readFileSync(configPath, 'utf-8'))
         if (subBotConfig.name) botNameToShow = subBotConfig.name
-        if (subBotConfig.banner) bannerUrl = subBotConfig.banner
-        if (subBotConfig.video) videoUrl = subBotConfig.video
+        if (subBotConfig.banner) bannerUrl = String(subBotConfig.banner)
+        if (subBotConfig.video) videoUrl = String(subBotConfig.video)
       } catch (e) { console.error(e) }
     }
 
     let rolBot = conn.user.jid == global.conn.user.jid ? 'Principal 🅥' : 'Sub-Bot 🅑'
 
-    
     let txt = `𝗛𝗼𝗹𝗮! 𝗦𝗼𝘆 *${botNameToShow}* (${rolBot})
 > ❏ 𝖠𝖼𝗍𝗂𝗏𝗂𝖽𝖺𝖽: ${uptimeStr}
 > ☁︎︎ 𝖡𝖺𝗂𝗅𝖾𝗒𝗌: 𝖬𝗎𝗅𝗍𝗂 𝖣𝖾𝗏𝗂𝖼𝖾
@@ -46,8 +45,9 @@ let handler = async (m, { conn, usedPrefix }) => {
     for (let tag in menu) {
       txt += `> ┃✜ *${tag.toUpperCase()}*\n\n`
       for (let plugin of menu[tag]) {
+        if (!Array.isArray(plugin.help)) continue
         for (let cmd of plugin.help) {
-          txt += `> ┃⏤͟͟͞͞ ⊹ *${usedPrefix + cmd}*\n`
+          txt += `> ┃⏤͟͟͞͞ ⊹ *${usedPrefix + String(cmd)}*\n`
         }
       }
       txt += `> ┗╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍\n\n`
@@ -56,19 +56,19 @@ let handler = async (m, { conn, usedPrefix }) => {
     if (videoUrl) {
       await conn.sendMessage(
         m.chat,
-        { video: { url: videoUrl }, caption: txt, gifPlayback: false },
+        { video: { url: String(videoUrl) }, caption: txt, gifPlayback: false },
         { quoted: m }
       )
     } else if (bannerUrl) {
       await conn.sendMessage(
         m.chat,
-        { image: { url: bannerUrl }, caption: txt },
+        { image: { url: String(bannerUrl) }, caption: txt },
         { quoted: m }
       )
     } else {
       await conn.sendMessage(
         m.chat,
-        { image: { url: global.banner }, caption: txt },
+        { image: { url: String(global.banner) }, caption: txt },
         { quoted: m }
       )
     }
