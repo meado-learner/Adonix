@@ -20,24 +20,14 @@ let handler = async (m, { conn, usedPrefix }) => {
     let seconds = Math.floor(uptimeSec % 60)
     let uptimeStr = `${hours}h ${minutes}m ${seconds}s`
 
-    let botNameToShow = global.botname || ""
-    let bannerUrl = global.banner || ""
-    let videoUrl = null
+    let botNameToShow = global.botname || "Bot"
+    let bannerUrl = global.banner || null
 
-    const senderBotNumber = conn.user.jid.split('@')[0]
-    const configPath = path.join('./Sessions/SubBot', senderBotNumber, 'config.json')
-    if (fs.existsSync(configPath)) {
-      try {
-        const subBotConfig = JSON.parse(fs.readFileSync(configPath, 'utf-8'))
-        if (subBotConfig.name) botNameToShow = subBotConfig.name
-        if (subBotConfig.banner) {
-          bannerUrl = Array.isArray(subBotConfig.banner) ? subBotConfig.banner[0] : subBotConfig.banner
-        }
-        if (subBotConfig.video) {
-          videoUrl = Array.isArray(subBotConfig.video) ? subBotConfig.video[0] : subBotConfig.video
-        }
-      } catch (e) { console.error(e) }
+    if (!bannerUrl) {
+      return conn.reply(m.chat, "No se ha configurado un banner para este bot.", m)
     }
+
+    bannerUrl = Array.isArray(bannerUrl) ? bannerUrl[0] : bannerUrl
 
     let rolBot = conn.user.jid == global.conn.user.jid ? 'Principal 🅥' : 'Sub-Bot 🅑'
 
@@ -57,30 +47,15 @@ let handler = async (m, { conn, usedPrefix }) => {
       txt += `> ┗╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍\n\n`
     }
 
-    if (videoUrl) {
-      await conn.sendMessage(
-        m.chat,
-        { video: { url: videoUrl }, caption: txt, gifPlayback: false },
-        { quoted: m }
-      )
-    } else if (bannerUrl) {
-      await conn.sendMessage(
-        m.chat,
-        { image: { url: bannerUrl }, caption: txt },
-        { quoted: m }
-      )
-    } else if (global.banner) {
-      let defaultBanner = Array.isArray(global.banner) ? global.banner[0] : global.banner
-      await conn.sendMessage(
-        m.chat,
-        { image: { url: defaultBanner }, caption: txt },
-        { quoted: m }
-      )
-    }
+    await conn.sendMessage(
+      m.chat,
+      { image: { url: bannerUrl }, caption: txt },
+      { quoted: m }
+    )
 
   } catch (e) {
     console.error(e)
-    conn.reply(m.chat, "✿ 𝖫𝗈 𝗌𝖾𝗇𝗍𝗂𝗆𝗈𝗌 𝖾𝗅 𝗆𝖾𝗇𝗎 𝗍𝗂𝖾𝗇𝖾 𝗎𝗇 𝖾𝗋𝗋𝗈𝗋. ", m)
+    conn.reply(m.chat, "Ha ocurrido un error al enviar el menú.", m)
   }
 }
 
