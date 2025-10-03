@@ -20,7 +20,7 @@ let handler = async (m, { conn, usedPrefix }) => {
     let seconds = Math.floor(uptimeSec % 60)
     let uptimeStr = `${hours}h ${minutes}m ${seconds}s`
 
-    let botNameToShow = global.nombre || ""
+    let botNameToShow = global.botname || ""
     let bannerUrl = global.banner || ""
     let videoUrl = null
 
