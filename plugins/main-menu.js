@@ -28,13 +28,13 @@ let handler = async (m, { conn, usedPrefix }) => {
     if (Array.isArray(bannerUrl)) bannerUrl = bannerUrl[0]
     if (typeof bannerUrl !== "string") bannerUrl = String(bannerUrl)
 
-    // Descargar imagen como buffer para seguridad
+    // Descargar imagen como buffer
     let buffer
     try {
       const response = await axios.get(bannerUrl, { responseType: 'arraybuffer' })
       buffer = Buffer.from(response.data, 'binary')
     } catch {
-      buffer = null // si falla, no usamos buffer
+      buffer = null
     }
 
     let rolBot = conn.user.jid === global.conn.user.jid ? 'Principal 🅥' : 'Sub-Bot 🅑'
@@ -58,20 +58,26 @@ let handler = async (m, { conn, usedPrefix }) => {
       txt += `> ┗╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍\n\n`
     }
 
-    // Enviar mensaje con imagen (buffer si descargó bien, si no usar URL)
-    if (buffer) {
-      await conn.sendMessage(
-        m.chat,
-        { image: buffer, caption: txt },
-        { quoted: m }
-      )
-    } else {
-      await conn.sendMessage(
-        m.chat,
-        { image: { url: bannerUrl }, caption: txt },
-        { quoted: m }
-      )
-    }
+    // Enviar mensaje con externalAdReply
+    await conn.sendMessage(
+      m.chat,
+      {
+        text: txt,
+        footer: 'Menu',
+        mentions: [m.sender],
+        contextInfo: {
+          externalAdReply: {
+            showAdAttribution: true,
+            title: botNameToShow,
+            body: 'Mi menú de comandos',
+            mediaType: 2, // Imagen
+            thumbnail: buffer || undefined, // Si buffer falla, queda undefined
+            sourceUrl: bannerUrl
+          }
+        }
+      },
+      { quoted: m }
+    )
 
   } catch (e) {
     console.error(e)
