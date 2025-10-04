@@ -21,7 +21,7 @@ await m.react('✅')
 await m.react('❌') 
 }}
 
-handler.help = ['tiktok ']
+handler.help = ['tiktok']
 handler.tags = ['descargas'] 
 handler.command = ['tiktok', 'tt']
 
