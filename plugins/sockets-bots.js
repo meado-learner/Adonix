@@ -46,7 +46,7 @@ try {
         }).join("\n\n") 
         : `✧ No hay bots activos en este grupo`
 
-    const message = `「✦」 *Lista de bots activos*
+    const message = `「✦」*Lista de bots activos*
 
 ✐ Principal: *1*
 ☁︎ Subs: *${users.length - 1}*
@@ -57,15 +57,25 @@ ${botsGroup}`
     const mentionList = groupBots.map(bot => bot.endsWith("@s.whatsapp.net") ? bot : `${bot}@s.whatsapp.net`)
 
     await conn.sendMessage(
-        m.chat, 
-        { text: message, contextInfo: { mentionedJid: mentionList }, quoted: m }
+        m.chat,
+        {
+            text: message,
+            contextInfo: { mentionedJid: mentionList },
+            quoted: { key: m.key, message: m.message }
+        }
     )
 
 } catch (error) {
-    m.reply(`⚠︎ Se ha producido un problema.
+    await conn.sendMessage(
+        m.chat,
+        {
+            text: `⚠︎ Se ha producido un problema.
 > Usa *${usedPrefix}report* para informarlo.
 
-> ⴵ Error: ${error.message}`)
+> ⴵ Error: ${error.message}`,
+            quoted: { key: m.key, message: m.message }
+        }
+    )
 }}
 
 handler.tags = ["serbot"]
