@@ -56,21 +56,9 @@ let handler = async (m, { conn, usedPrefix }) => {
     await conn.sendMessage(
       m.chat,
       {
-        text: txt,
-        footer: 'Menu',
-        mentions: [m.sender],
-        contextInfo: {
-          externalAdReply: {
-            title: botNameToShow,
-            body: global.author || '',
-            mediaType: 1,
-            mediaUrl: bannerUrl,
-            sourceUrl: bannerUrl,
-            thumbnail: thumbnailBuffer,
-            containsAutoReply: true,
-            renderLargerThumbnail: true
-          }
-        }
+        image: thumbnailBuffer,
+        caption: txt,
+        mentions: [m.sender]
       },
       { quoted: m }
     )
