@@ -3,10 +3,12 @@ import ws from "ws"
 const handler = async (m, { conn, command, usedPrefix, participants }) => {
 try {
     const users = [
-        global.conn.user.jid,
-        ...new Set(global.conns
-            .filter(c => c.user && c.ws.socket && c.ws.socket.readyState !== ws.CLOSED)
-            .map(c => c.user.jid))
+        global.conn.user.jid, 
+        ...new Set(
+            global.conns
+                .filter(conn => conn.user && conn.ws.socket && conn.ws.socket.readyState !== ws.CLOSED)
+                .map(conn => conn.user.jid)
+        )
     ]
 
     function convertirMsADiasHorasMinutosSegundos(ms) {
@@ -33,49 +35,38 @@ try {
     const botsGroup = groupBots.length > 0 
         ? groupBots.map(bot => {
             const isMainBot = bot === global.conn.user.jid
-            const v = global.conns.find(c => c.user.jid === bot)
+            const v = global.conns.find(conn => conn.user.jid === bot)
             const uptime = isMainBot 
-                ? convertirMsADiasHorasMinutosSegundos(Date.now() - global.conn.uptime) 
+                ? convertirMsADiasHorasMinutosSegundos(Date.now() - global.conn.uptime)
                 : v?.uptime 
                     ? convertirMsADiasHorasMinutosSegundos(Date.now() - v.uptime) 
                     : "Activo desde ahora"
             const mention = bot.replace(/[^0-9]/g, '')
-            return `@${mention}
-> ꕥ Bot: ${isMainBot ? 'Principal' : 'Sub-Bot'}
-> ❑ Online: ${uptime}`
-        }).join("\n\n") 
+            return `@${mention}\n> Bot: ${isMainBot ? 'Principal' : 'Sub-Bot'}\n> Online: ${uptime}`
+        }).join("\n\n")
         : `✧ No hay bots activos en este grupo`
 
-    const message = `「✦」*Lista de bots activos*
+    const message = `*「 ✦ 」 Lista de bots activos*
 
-✐ Principal: *1*
-☁︎ Subs: *${users.length - 1}*
+❀ Principal: *1*
+✿ Subs: *${users.length - 1}*
 
 ❏ En este grupo: *${groupBots.length}* bots
 ${botsGroup}`
 
     const mentionList = groupBots.map(bot => bot.endsWith("@s.whatsapp.net") ? bot : `${bot}@s.whatsapp.net`)
 
-    await conn.sendMessage(
-        m.chat,
-        {
-            text: message,
-            contextInfo: { mentionedJid: mentionList },
-            quoted: { key: m.key, message: m.message }
-        }
-    )
+    await conn.sendMessage(m.chat, {
+        text: message,
+        contextInfo: { mentionedJid: mentionList },
+        quoted: m
+    })
 
 } catch (error) {
-    await conn.sendMessage(
-        m.chat,
-        {
-            text: `⚠︎ Se ha producido un problema.
-> Usa *${usedPrefix}report* para informarlo.
-
-> ⴵ Error: ${error.message}`,
-            quoted: { key: m.key, message: m.message }
-        }
-    )
+    await conn.sendMessage(m.chat, {
+        text: `⚠︎ Se ha producido un problema.\n> Usa *${usedPrefix}report* para informarlo.\n\n> ⴵ Error: ${error.message}`,
+        quoted: m
+    })
 }}
 
 handler.tags = ["serbot"]
