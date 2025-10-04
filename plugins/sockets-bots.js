@@ -46,7 +46,7 @@ try {
         }).join("\n\n") 
         : `✧ No hay bots activos en este grupo`
 
-    const message = `「✦」*Lista de bots activos*
+    const message = `「✦」 *Lista de bots activos*
 
 ✐ Principal: *1*
 ☁︎ Subs: *${users.length - 1}*
@@ -56,7 +56,10 @@ ${botsGroup}`
 
     const mentionList = groupBots.map(bot => bot.endsWith("@s.whatsapp.net") ? bot : `${bot}@s.whatsapp.net`)
 
-    await conn.sendMessage(m.chat, { text: message, contextInfo: { mentionedJid: mentionList }, quoted: m })
+    await conn.sendMessage(
+        m.chat, 
+        { text: message, contextInfo: { mentionedJid: mentionList }, quoted: m }
+    )
 
 } catch (error) {
     m.reply(`⚠︎ Se ha producido un problema.
