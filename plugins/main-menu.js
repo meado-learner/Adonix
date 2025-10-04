@@ -32,7 +32,7 @@ let handler = async (m, { conn, usedPrefix }) => {
 ╎ ❏ 𝖠𝖼𝗍𝗂𝗏𝗂𝖽𝖺𝖽: ${uptimeStr}
 ╎ ☁︎︎ 𝖡𝖺𝗂𝗅𝖾𝗒𝗌: 𝖬𝗎𝗅𝗍𝗂 𝖣𝖾𝗏𝗂𝖼𝖾
 ╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
-\n`
+\n\n`
 
     for (let tag in menu) {
       txt += `> ┃✜ *${tag.toUpperCase()}*\n\n`
@@ -55,12 +55,17 @@ let handler = async (m, { conn, usedPrefix }) => {
       thumbnailBuffer = null
     }
 
+    
     await conn.sendMessage(
       m.chat,
       {
         image: thumbnailBuffer,
         caption: txt,
-        mentions: [m.sender]
+        mentions: [m.sender],
+        contextInfo: {
+          forwardingScore: 999,
+          isForwarded: true
+        }
       },
       { quoted: m }
     )
