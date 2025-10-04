@@ -7,13 +7,13 @@ if (!args[0]) return conn.reply(m.chat, 'Ingresa un enlace de *tiktok*', m)
 try {
 let { title, author, username, published, like, comment, share, views, bookmark, video, cover, duration, music, profilePicture } = await ttdl(args[0])
 
-let txt = `- *Título :* ${title || '-'}
-- *Autor :* ${author || '-'}
-- *Duración :* ${duration || '-'}
-- *Vistas :* ${views || '-'}
-- *Likes :* ${like || '-'}
-- *Comentarios :* ${comment || '-'}
-- *Publicado :* ${published || '-'}`
+let txt = `☆ *Título :* ${title || '-'}
+✦ *Autor :* ${author || '-'}
+❀ *Duración :* ${duration || '-'}
+✿ *Vistas :* ${views || '-'}
+❏ *Likes :* ${like || '-'}
+ꕤ *Comentarios :* ${comment || '-'}
+✎ *Publicado :* ${published || '-'}`
 
 await conn.sendFile(m.chat, video, 'Tiktokdl.mp4', txt, m)
 await m.react('✅')
@@ -21,7 +21,7 @@ await m.react('✅')
 await m.react('❌') 
 }}
 
-handler.help = ['tiktok *<link>*']
+handler.help = ['tiktok ']
 handler.tags = ['descargas'] 
 handler.command = ['tiktok', 'tt']
 
