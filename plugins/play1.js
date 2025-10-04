@@ -1,184 +1,125 @@
-import yts from 'yt-search';
-import fetch from 'node-fetch';
-import axios from 'axios';
-import crypto from 'crypto';
+// ytaudio.js
+import axios from "axios";
+import fs from "fs";
+import os from "os";
+import path from "path";
+import { fileURLToPath } from "url";
 
-// Placeholder function to generate PoW hash (needs reverse-engineering)
-function generatePowHash(nonce, videoId, timestamp) {
-    // Mock function: Replace with actual PoW logic from the website
-    return crypto.createHash('sha256')
-        .update(`${nonce}${videoId}${timestamp}`)
-        .digest('hex');
+// Si tu entorno no soporta ESM, adapta a require(...) en consecuencia.
+
+const API_ENDPOINT = "https://fast.dlsrv.online/gateway/audio"
+
+// --- CONFIG: pon aquí los headers que conseguiste (pueden expirar) ---
+const DEFAULT_HEADERS = {
+  Accept: "application/json, text/plain, */*",
+  "Content-Type": "application/json",
+  "x-api-auth": "Ig9CxOQPYu3RB7GC21sOcgRPy4uyxFKTx54bFDu07G3eAMkrdVqXY9bBatu4WqTpkADrQ",
+  "x-session-token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpcCI6IjEwNC4yMy4xODcuMjQ2IiwiaWF0IjoxNzU5NTk1MDg1LCJleHAiOjE3NTk1OTU2ODV9.VUrGC03dlBoWmW5Ofm5oc89uKpB7ThU6HYUSeBwq3n0",
+  "x-signature": "875681b35f9ba3a307192fb69d4694486c728fae8402b73285da272c40718a46",
+  "x-signature-timestamp": "1759595084792",
+  nonce: "54867",
+  powhash: "000098376099b92fa634842d851610e30ed0055c637aa8f1ade95b5e54c3de2f",
+  "cache-control": "private",
+  // Otros headers que quieras incluir...
 }
 
-// Placeholder function to generate signature (needs reverse-engineering)
-function generateSignature(videoId, timestamp) {
-    // Mock function: Replace with actual signature logic
-    return crypto.createHash('sha256')
-        .update(`${videoId}${timestamp}`)
-        .digest('hex');
+// Utilidad: crea un archivo temporal con extensión .mp3
+function tempFilePath(filename = "yt_audio") {
+  const tmpDir = os.tmpdir()
+  const safeName = filename.replace(/[\/\\?%*:|"<>]/g, "_").slice(0, 120)
+  return path.join(tmpDir, `${safeName}-${Date.now()}.mp3`)
 }
 
-// Scraper function for yt1s.biz
-async function scrapeYt1s(videoId, quality = '320') {
-    try {
-        // Placeholder values (replace with actual logic)
-        const apiAuth = 'Ig9CxOQPYu3RB7GC21sOcgRPy4uyxFKTx54bFDu07G3eAMkrdVqXY9bBatu4WqTpkADrQ';
-        const nonce = Math.floor(Math.random() * 100000).toString();
-        const timestamp = Date.now();
-        const sessionToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpcCI6IjEwNC4yMy4xODcuMjQ2IiwiaWF0IjoxNzU5NTk1MDg1LCJleHAiOjE3NTk1OTU2ODV9.VUrGC03dlBoWmW5Ofm5oc89uKpB7ThU6HYUSeBwq3n0';
-        const signature = generateSignature(videoId, timestamp);
-        const powhash = generatePowHash(nonce, videoId, timestamp);
-
-        // Request headers
-        const headers = {
-            'Accept': 'application/json, text/plain, */*',
-            'Content-Type': 'application/json',
-            'x-api-auth': apiAuth,
-            'x-session-token': sessionToken,
-            'x-signature': signature,
-            'x-signature-timestamp': timestamp.toString(),
-            'nonce': nonce,
-            'powhash': powhash,
-        };
-
-        // Request payload
-        const payload = {
-            videoId: videoId,
-            quality: quality,
-        };
-
-        // Make the POST request
-        const response = await axios.post('https://fast.dlsrv.online/gateway/audio', payload, { headers });
-
-        if (response.data.status === 'tunnel') {
-            return {
-                status: 'success',
-                url: response.data.url,
-                filename: response.data.filename,
-                duration: response.data.duration,
-            };
-        } else {
-            throw new Error(`Unexpected response status: ${response.data.status}`);
-        }
-    } catch (error) {
-        console.error('Scraper error:', error.message);
-        return {
-            status: 'error',
-            message: error.message,
-        };
-    }
+// Hace la petición a gateway/audio y devuelve el objeto JSON de respuesta
+async function requestAudioTunnel(videoId, headers = DEFAULT_HEADERS) {
+  const body = { videoId: videoId, quality: "320" } // ajusta quality si quieres
+  const res = await axios.post(API_ENDPOINT, body, {
+    headers,
+    timeout: 20000,
+  })
+  return res.data
 }
 
-let handler = async (m, { conn, command, text, usedPrefix }) => {
-    if (!text) 
-        return conn.reply(
-            m.chat, 
-            '「✿」 Ingresa el nombre de lo que quieres buscar', 
-            m
-        );
+// Descarga el recurso de `url` (stream) a archivo temporal y retorna path
+async function downloadToTemp(url, filenameHint = "audio") {
+  const tmpPath = tempFilePath(filenameHint)
+  const writer = fs.createWriteStream(tmpPath)
+  const response = await axios.get(url, {
+    responseType: "stream",
+    maxContentLength: Infinity,
+    maxBodyLength: Infinity,
+    timeout: 0, // permitir descargas largas (opcional)
+  })
+  return new Promise((resolve, reject) => {
+    response.data.pipe(writer)
+    let error = null
+    writer.on("error", err => {
+      error = err
+      writer.close()
+      reject(err)
+    })
+    writer.on("close", () => {
+      if (!error) resolve(tmpPath)
+    })
+  })
+}
 
-    await m.react('🕓');
+// Plugin/handler exportado para tu bot
+const handler = async (m, { conn, command, usedPrefix, args }) => {
+  try {
+    if (!args[0]) return m.reply(`⚠︎ Uso: ${usedPrefix}${command} <videoId|youtube_url>`)
+    // Extraer videoId si el usuario pegó una URL
+    let videoId = args[0]
+    // si es una URL de youtube intentar extraer id
+    const ytMatch = videoId.match(/(?:v=|\/)([0-9A-Za-z_-]{11})(?:[&?]|$)/)
+    if (ytMatch) videoId = ytMatch[1]
 
-    let res = await yts(text);
-    let play = res.videos[0];
+    await m.reply(`🔎 Procesando video: ${videoId} — solicitando audio...`)
 
-    if (!play) 
-        return conn.reply(
-            m.chat, 
-            '> No se encontraron resultados para tu búsqueda', 
-            m
-        );
+    // 1) Llamada al endpoint gateway/audio
+    const tunnelResp = await requestAudioTunnel(videoId)
 
-    let { title, thumbnail, ago, timestamp, views, videoId, url, author } = play;
-
-    let txt = '';
-    txt += `「✦」 Descargando *${title || ''}*\n\n`;
-    txt += `> ❑ Canal » *${author.name || ''}*\n`;
-    txt += `> ♡ Vistas » *${views.toLocaleString() || ''}*\n`;
-    txt += `> ✧︎ Duración » *${timestamp || ''}*\n`;
-    txt += `> ✿ Publicado » *${ago || ''}*\n`;
-    txt += `> ✎ Link » https://youtube.com/watch?v=${videoId}`;
-
-    let thumbnailBuffer;
-    try {
-        const resFetch = await fetch(thumbnail);
-        thumbnailBuffer = await resFetch.buffer();
-    } catch {
-        thumbnailBuffer = null;
+    // ejemplo de lo que esperamos:
+    // { status: "tunnel", url: "...", filename: "...", duration: 45 }
+    if (!tunnelResp || !tunnelResp.url) {
+      return m.reply("❌ Respuesta inválida del servicio (no vino 'url').")
     }
 
-    await conn.sendMessage(
-        m.chat,
-        {
-            text: txt,
-            footer: 'YouTube',
-            mentions: [m.sender],
-            contextInfo: {
-                externalAdReply: {
-                    title: botname || 'Video',
-                    body: author || '',
-                    mediaType: 1,
-                    mediaUrl: url,
-                    sourceUrl: url,
-                    thumbnail: thumbnailBuffer,
-                    containsAutoReply: true,
-                    renderLargerThumbnail: true,
-                },
-            },
-        },
-        { quoted: m }
-    );
+    // 2) Descargar el archivo desde tunnelResp.url
+    // A veces la 'url' devuelve una redirección 302 a la URL final. axios seguirá redirs por defecto.
+    const filename = tunnelResp.filename || `youtube-${videoId}.mp3`
+    const tempPath = await downloadToTemp(tunnelResp.url, filename)
 
-    try {
-        if (command === 'play1' || command === 'play2') {
-            if (command.endsWith('mp3') || command === 'play1') {
-                // Use the scraper for MP3 downloads
-                const result = await scrapeYt1s(videoId);
+    // 3) Enviar el audio al chat
+    // Ajusta el sendMessage al método de tu framework (aquí se usa la forma común)
+    const stat = fs.statSync(tempPath)
+    const fileSize = stat.size
 
-                if (result.status !== 'success') {
-                    return conn.reply(
-                        m.chat,
-                        `「✦」 Ocurrió un error al obtener el audio: ${result.message}`,
-                        m
-                    );
-                }
+    // Si tu conn.sendMessage acepta audio/documentas:
+    await conn.sendMessage(m.chat, {
+      document: fs.createReadStream(tempPath),
+      fileName: filename,
+      mimetype: "audio/mpeg",
+      fileLength: fileSize,
+    })
 
-                await conn.sendMessage(m.chat, {
-                    audio: { url: result.url },
-                    mimetype: 'audio/mpeg',
-                    ptt: false,
-                }, { quoted: m });
-            } else {
-                // Keep the original video download logic
-                const endpoint = `${global.apiadonix}/download/ytmp4?apikey=Adofreekey&url=${encodeURIComponent(url)}`;
-                const resApi = await fetch(endpoint);
-                const json = await resApi.json();
-                const videoUrl = json.data?.url;
+    // borrar archivo temporal
+    fs.unlink(tempPath, (err) => {
+      if (err) console.warn("No se pudo borrar temp file:", err)
+    })
 
-                if (!videoUrl) 
-                    return conn.reply(
-                        m.chat, 
-                        '「✦」 Ocurrió un error, no se pudo obtener el video.', 
-                        m
-                    );
+  } catch (err) {
+    console.error("Error en handler ytaudio:", err)
+    // Mensaje de error amigable al usuario
+    const msg = (err && err.response && err.response.data) ? 
+      `❌ Error del servicio: ${JSON.stringify(err.response.data)}` : `❌ Error: ${err.message || err}`
+    try { await m.reply(msg) } catch(e){ console.error(e) }
+  }
+}
 
-                await conn.sendMessage(m.chat, {
-                    video: { url: videoUrl },
-                    caption: `「✦」 *${title}*`,
-                }, { quoted: m });
-            }
-            await m.react('✅');
-        }
-    } catch (e) {
-        console.log(e);
-        conn.reply(m.chat, '「❌」 Ocurrió un error al descargar', m);
-        await m.react('❌');
-    }
-};
+handler.tags = ["downloader", "tools"]
+handler.help = ["ytaudio <id|url>"]
+handler.command = ["ytaudio", "yta"] // alias
+handler.group = false
 
-handler.help = ['play', 'play2'];
-handler.tags = ['descargas'];
-handler.command = ['play1'];
-
-export default handler;
+export default handler
