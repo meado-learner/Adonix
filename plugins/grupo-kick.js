@@ -4,17 +4,6 @@ const handler = async (m, { conn, args, participants, isAdmin, isOwner }) => {
   if (!m.isGroup) return
   if (!isAdmin && !isOwner) return
 
-  const fkontak = {
-    key: { participants: '0@s.whatsapp.net', remoteJid: 'status@broadcast', fromMe: false, id: 'fkontak' },
-    message: {
-      contactMessage: {
-        displayName: '「✦」 GESTIÓN DE GRUPO',
-        vcard: `BEGIN:VCARD\nVERSION:3.0\nN:;Gestión;;;\nFN:Gestión de Grupo\nEND:VCARD`
-      }
-    }
-  }
-
-  
   const users = m.mentionedJid && m.mentionedJid.length > 0
     ? m.mentionedJid
     : m.quoted
@@ -24,11 +13,10 @@ const handler = async (m, { conn, args, participants, isAdmin, isOwner }) => {
         : []
 
   if (users.length === 0) {
-    
     return conn.sendMessage(
       m.chat,
       { text: '「✦」 Uso correcto: responde al mensaje del usuario o menciona su número. Ejemplo:\n.kick @usuario' },
-      { quoted: fkontak }
+      { quoted: m }
     )
   }
 
@@ -41,8 +29,7 @@ const handler = async (m, { conn, args, participants, isAdmin, isOwner }) => {
     } catch (err) { }
   }
 
-  
-  await conn.sendMessage(m.chat, { text: '🥾', mentions: users }, { quoted: fkontak })
+  await conn.sendMessage(m.chat, { text: '🥾', mentions: users }, { quoted: m })
 }
 
 handler.help = ['kick @usuario']
