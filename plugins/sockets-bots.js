@@ -5,8 +5,8 @@ try {
     const users = [
         global.conn.user.jid,
         ...new Set(global.conns
-            .filter(conn => conn.user && conn.ws.socket && conn.ws.socket.readyState !== ws.CLOSED)
-            .map(conn => conn.user.jid))
+            .filter(c => c.user && c.ws.socket && c.ws.socket.readyState !== ws.CLOSED)
+            .map(c => c.user.jid))
     ]
 
     function convertirMsADiasHorasMinutosSegundos(ms) {
@@ -33,7 +33,7 @@ try {
     const botsGroup = groupBots.length > 0 
         ? groupBots.map(bot => {
             const isMainBot = bot === global.conn.user.jid
-            const v = global.conns.find(conn => conn.user.jid === bot)
+            const v = global.conns.find(c => c.user.jid === bot)
             const uptime = isMainBot 
                 ? convertirMsADiasHorasMinutosSegundos(Date.now() - global.conn.uptime) 
                 : v?.uptime 
@@ -55,9 +55,9 @@ try {
 ${botsGroup}`
 
     const mentionList = groupBots.map(bot => bot.endsWith("@s.whatsapp.net") ? bot : `${bot}@s.whatsapp.net`)
-    rcanal.contextInfo.mentionedJid = mentionList
 
-    await conn.sendMessage(m.chat, { text: message, ...rcanal }, { quoted: m })
+    await conn.sendMessage(m.chat, { text: message, contextInfo: { mentionedJid: mentionList }, quoted: m })
+
 } catch (error) {
     m.reply(`⚠︎ Se ha producido un problema.
 > Usa *${usedPrefix}report* para informarlo.
