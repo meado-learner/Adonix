@@ -21,20 +21,20 @@ const handler = async (m, { conn, command, participants, groupMetadata, isAdmin,
 
   if (command === 'abrir') {
     if (!isClose)
-      return conn.sendMessage(m.chat, { text: '「✦」 El grupo ya está abierto.' }, { quoted: fkontak })
+      return conn.sendMessage(m.chat, { text: '「✦」 El grupo ya está abierto.' }, { quoted: m })
 
     await conn.groupSettingUpdate(group, 'not_announcement')
     const text = `「✦」 *El grupo ha sido abierto, todos pueden escribir nuevamente.*`
-    await conn.sendMessage(group, { text, mentions: participants.map(v => v.id) }, { quoted: fkontak })
+    await conn.sendMessage(group, { text, mentions: participants.map(v => v.id) }, { quoted: m })
   }
 
   if (command === 'cerrar') {
     if (isClose)
-      return conn.sendMessage(m.chat, { text: '「✦」 El grupo ya se encuentra cerrado.' }, { quoted: fkontak })
+      return conn.sendMessage(m.chat, { text: '「✦」 El grupo ya se encuentra cerrado.' }, { quoted: m })
 
     await conn.groupSettingUpdate(group, 'announcement')
     const text = `「✦」 *El grupo ha sido cerrado temporalmente.*`
-    await conn.sendMessage(group, { text, mentions: participants.map(v => v.id) }, { quoted: fkontak })
+    await conn.sendMessage(group, { text, mentions: participants.map(v => v.id) }, { quoted: m })
   }
 }
 
