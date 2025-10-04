@@ -10,6 +10,7 @@ global.suittag = [""]
 global.prems = []
 global.id_canal = ["120363403739366547@newsletter"]
 global.name_canal = ["ෆ 𝖲𝗎𝗉𝗉𝗈𝗋𝗍 𝖠𝖽𝗈 ❏"]
+global.rcanal = true
 
 global.libreria = "Baileys Multi Device"
 global.vs = "^Latest"
