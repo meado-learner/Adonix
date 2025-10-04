@@ -16,7 +16,7 @@ resolve()
 }, ms))
 
 export async function handler(chatUpdate) {
-    // Always start with default settings
+    
     Object.assign(global, defaultSettings);
 
     const botNumber = this.user.jid.split('@')[0];
@@ -26,7 +26,7 @@ export async function handler(chatUpdate) {
     if (fs.existsSync(configPath)) {
         try {
             const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-            // Overwrite defaults with any custom settings found
+            
             global.botname = config.name || defaultSettings.botname;
             global.banner = config.banner || defaultSettings.banner;
         } catch (e) {
