@@ -109,7 +109,7 @@ let handler = async (m, { conn, command, text, usedPrefix }) => {
 };
 
 handler.help = ['play', 'play2'];
-handler.tags = ['dl'];
+handler.tags = ['descargas'];
 handler.command = ['play', 'play2'];
 
 export default handler;
