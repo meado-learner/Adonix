@@ -22,7 +22,7 @@ await m.react('❌')
 }}
 
 handler.help = ['tiktok *<link>*']
-handler.tags = ['dl'] 
+handler.tags = ['descargas'] 
 handler.command = ['tiktok', 'tt']
 
 export default handler
