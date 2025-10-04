@@ -1,58 +1,44 @@
-import { areJidsSameUser } from '@whiskeysockets/baileys'
+var handler = async (m, { conn, participants, usedPrefix, command }) => {
+  let mentionedJid = m.mentionedJid
+  let user = mentionedJid && mentionedJid.length
+    ? mentionedJid[0]
+    : m.quoted
+      ? m.quoted.sender
+      : null
 
-const handler = async (m, { conn, args, participants, isAdmin, isOwner }) => {
-  if (!m.isGroup) return
-  if (!isAdmin && !isOwner) return
+  if (!user) return conn.reply(
+    m.chat,
+    `「✦」 Uso correcto: responde al mensaje del usuario o menciona su número. Ejemplo:\n${usedPrefix}kick @usuario`,
+    m
+  )
 
-  let users = []
+  try {
+    const groupInfo = await conn.groupMetadata(m.chat)
+    const ownerGroup = groupInfo.owner || m.chat.split`-`[0] + '@s.whatsapp.net'
+    const ownerBot = global.owner[0][0] + '@s.whatsapp.net'
+    const isAdminTarget = participants.find(p => p.id === user)?.admin
 
-  if (m.mentionedJid && m.mentionedJid.length > 0) {
-    users = m.mentionedJid
-  } else if (m.quoted) {
-    users = [m.quoted.sender]
-  } else if (args.length > 0) {
-    const jid = args[0].replace(/[^0-9]/g, '') + '@s.whatsapp.net'
-    users = [jid]
-  }
+    if (user === conn.user.jid) return conn.reply(m.chat, `ꕥ No puedo eliminar el bot del grupo.`, m)
+    if (user === ownerGroup) return conn.reply(m.chat, `ꕥ No puedo eliminar al propietario del grupo.`, m)
+    if (user === ownerBot) return conn.reply(m.chat, `ꕥ No puedo eliminar al propietario del bot.`, m)
+    if (isAdminTarget) return conn.reply(m.chat, `ꕥ No puedo eliminar a otro administrador.`, m)
 
-  if (users.length === 0) {
-    return conn.sendMessage(
+    await conn.groupParticipantsUpdate(m.chat, [user], 'remove')
+    await m.react('🥾')
+  } catch (e) {
+    conn.reply(
       m.chat,
-      { text: '「✦」 Uso correcto: responde al mensaje del usuario o menciona su número. Ejemplo:\n.kick @usuario' },
-      { quoted: m }
+      `⚠︎ Se ha producido un problema.\n> Usa *${usedPrefix}report* para informarlo.\n\n${e.message}`,
+      m
     )
   }
-
-  let kicked = []
-
-  for (let user of users) {
-    const isBot = areJidsSameUser(user, conn.user.jid)
-    const target = participants.find(p => areJidsSameUser(p.id, user))
-    const isAdminTarget = target?.admin
-
-    if (isBot || isAdminTarget) continue
-
-    try {
-      await conn.groupParticipantsUpdate(m.chat, [user], 'remove')
-      kicked.push(user)
-    } catch (err) { }
-  }
-
-  if (kicked.length === 0) {
-    return conn.sendMessage(
-      m.chat,
-      { text: '「✦」 No se pudo expulsar a nadie. Verifica si los usuarios son válidos o no son administradores.' },
-      { quoted: m }
-    )
-  }
-
-  await conn.sendMessage(m.chat, { text: '🥾', mentions: kicked }, { quoted: m })
 }
 
-handler.help = ['kick @usuario']
+handler.help = ['kick']
 handler.tags = ['grupo']
-handler.command = /^kick$/i
+handler.command = ['kick', 'echar', 'hechar', 'sacar', 'ban']
 handler.admin = true
 handler.group = true
+handler.botAdmin = true
 
 export default handler
