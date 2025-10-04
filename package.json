@@ -1,5 +1,5 @@
 {
-  "name": "DuckAM",
+  "name": "Hamsty",
   "version": "1.0.0",
   "description": "Wa - bot Multi Device",
   "main": "index.js",
@@ -18,10 +18,10 @@
   },
   "repository": {
   "type": "git",
-  "url": "git+https://github.com/The-King-Destroy/YukiBot-MD.git"
+  "url": "git+https://github.com/meado-learner/Adonix.git"
   },  
   "bugs": {
-    "url": "https://github.com/meado-learner/Duck/issues"
+    "url": "https://github.com/meado-learner/Adonix/issues"
   },
   "license": "GPL-3.0-or-later",
   "dependencies": {
