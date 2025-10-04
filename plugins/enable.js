@@ -1,37 +1,53 @@
+const handler = async (m, { conn, usedPrefix, command, args, isOwner, isAdmin }) => {
+    const chat = global.db.data.chats[m.chat];
 
-const handler = async (m, { conn, command, usedPrefix, args, chat }) => {
-    try {
-        if (!args[0]) return m.reply(`⚠︎ Usa: ${usedPrefix}${command} <welcome|antilink>`);
+    
+    const primaryBot = chat.primaryBot;
+    if (primaryBot && conn.user.jid !== primaryBot) throw false;
 
-        const option = args[0].toLowerCase();
-        const validOptions = ["welcome", "antilink"];
+    
+    const validCommands = {
+        welcome: 'welcome',
+        antilink: 'antiLink',
+        modoadmin: 'modoadmin'
+    };
 
-        if (!validOptions.includes(option)) {
-            return m.reply(`⚠︎ Opción inválida. Usa: welcome o antilink`);
-        }
+    const type = validCommands[command.toLowerCase()];
+    if (!type) return;
 
-        
-        if (!global.db) global.db = {};
-        if (!global.db.chats) global.db.chats = {};
-        if (!global.db.chats[chat]) global.db.chats[chat] = {};
 
-        const chatSettings = global.db.chats[chat];
-
-        if (command === "enable") {
-            chatSettings[option] = true;
-            m.reply(`❏ Se ha activado *${option}* en este grupo.`);
-        } else if (command === "disable") {
-            chatSettings[option] = false;
-            m.reply(`✿ Se ha desactivado *${option}* en este grupo.`);
-        }
-    } catch (error) {
-        m.reply(`⚠︎ Error:\n${error.message}`);
+    if (m.isGroup && !(isAdmin || isOwner)) {
+        global.dfail('admin', m, conn);
+        throw false;
     }
+
+    let isEnable = chat[type] || false;
+
+    if (args[0] === 'on' || args[0] === 'enable') {
+        if (isEnable) return conn.reply(m.chat, `ꕥ *${command}* ya estaba *activado*.`, m);
+        isEnable = true;
+    } else if (args[0] === 'off' || args[0] === 'disable') {
+        if (!isEnable) return conn.reply(m.chat, `ꕥ *${command}* ya estaba *desactivado*.`, m);
+        isEnable = false;
+    } else {
+        return conn.reply(
+            m.chat,
+            `[✦] Un admin puede gestionar el comando *${command}*:
+☆ Activar:   ${usedPrefix}${command} enable
+☆ Desactivar: ${usedPrefix}${command} disable
+
+✿ Estado actual: ${isEnable ? '★ Activado' : '✣ Desactivado'}`,
+            m
+        );
+    }
+
+    chat[type] = isEnable;
+    conn.reply(m.chat, `❏ *${command}* *${isEnable ? 'activado' : 'desactivado'}* correctamente para este grupo.`, m);
 };
 
-handler.tags = ["group"];
-handler.help = ["enable <welcome|antilink>", "disable <welcome|antilink>"];
-handler.command = ["enable", "disable"];
+handler.help = ['welcome', 'antilink', 'modoadmin'];
+handler.tags = ['group'];
+handler.command = ['welcome', 'antilink', 'modoadmin'];
 handler.group = true;
 
 export default handler;
