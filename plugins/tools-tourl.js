@@ -102,11 +102,11 @@ const handler = async (m, { conn, command }) => {
     uploadToFreeImageHost(buffer),
   ])
 
-  let message = '*✅ Archivo subido exitosamente a varios servicios:*\n'
-  if (supa) message += `\n🔗 *Supa:* ${supa}`
-  if (tmp) message += `\n🔗 *TmpFiles:* ${tmp}`
-  if (uguu) message += `\n🔗 *Uguu:* ${uguu}`
-  if (freehost) message += `\n🔗 *FreeImage.Host:* ${freehost}`
+  let message = '*❏ Archivo subido exitosamente a varios servicios:*\n'
+  if (supa) message += `\n✿ *Supa:* ${supa}`
+  if (tmp) message += `\n✿ *TmpFiles:* ${tmp}`
+  if (uguu) message += `\n✿ *Uguu:* ${uguu}`
+  if (freehost) message += `\n✿ *FreeImage.Host:* ${freehost}`
 
   await conn.sendMessage(m.chat, { text: message }, { quoted: m })
   await conn.sendMessage(m.chat, {
