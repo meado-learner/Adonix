@@ -46,7 +46,7 @@ const handler = async (m, { conn, usedPrefix, command, args, isOwner, isAdmin })
 };
 
 handler.help = ['welcome', 'antilink', 'modoadmin'];
-handler.tags = ['group'];
+handler.tags = ['grupo'];
 handler.command = ['welcome', 'antilink', 'modoadmin'];
 handler.group = true;
 
