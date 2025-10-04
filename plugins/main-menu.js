@@ -35,13 +35,13 @@ let handler = async (m, { conn, usedPrefix }) => {
 \n\n`
 
     for (let tag in menu) {
-      txt += `> ┃✜ *${tag.toUpperCase()}*\n\n`
+      txt += `> ┃✜ *${tag.toUpperCase()}*\n`
       for (let plugin of menu[tag]) {
         if (!Array.isArray(plugin.help)) continue
         for (let cmd of plugin.help) {
           if (Array.isArray(cmd)) cmd = cmd[0]
           if (!cmd) continue
-          txt += `> ┃⏤͟͟͞͞ ⊹ *${usedPrefix + String(cmd)}*\n`
+          txt += `> ┃⏤͟͟͞͞ ❏ *${usedPrefix + String(cmd)}*\n`
         }
       }
       txt += `> ┗╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍\n\n`
