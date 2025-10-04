@@ -1,6 +1,8 @@
 import fetch from 'node-fetch'
 
 export async function before(m, { conn }) {
+  const response = await fetch(banner);
+  const thumbnailBuffer = Buffer.from(await response.arrayBuffer());
 
   global.rcanal = {
     externalAdReply: {
@@ -8,11 +10,10 @@ export async function before(m, { conn }) {
       body: author,
       mediaUrl: 'https://apiadonix.kozow.com',
       previewType: "PHOTO",
-      thumbnail: await (await fetch(banner)).buffer(),
+      thumbnail: thumbnailBuffer,
       sourceUrl: 'https://apiadonix.kozow.com',
       mediaType: 1,
       renderLargerThumbnail: false
     }
   }
-
 }
