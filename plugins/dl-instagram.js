@@ -12,8 +12,8 @@ m.react('✅')
 m.react('❌')
 }}
 
-handler.help = ['instagram *<link>*']
-handler.tags = ['dl']
+handler.help = ['instagram']
+handler.tags = ['descargas']
 handler.command = ['instagramdl', 'instagram', 'igdl', 'ig']
 
 export default handler
