@@ -48,7 +48,7 @@ let handler = async (m, { conn, command, text, usedPrefix }) => {
       contextInfo: {
         externalAdReply: {
           title: botname || 'Video',
-          body: author || '',
+          body: global.author || '',
           mediaType: 1,
           mediaUrl: url,
           sourceUrl: url,
