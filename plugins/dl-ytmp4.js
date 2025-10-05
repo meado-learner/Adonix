@@ -7,23 +7,21 @@ const youtubeRegexID = /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([a-z
 const handler = async (m, { conn, text, usedPrefix, command }) => {
   try {
     if (!text.trim()) {
-      return conn.reply(m.chat, "❀ Por favor, ingresa el nombre de la música a descargar.", m);
+      return conn.reply(m.chat, "❀ Por favor, ingresa el nombre de la música o un enlace de YouTube.", m);
     }
 
     const videoIdToFind = text.match(youtubeRegexID)?.[1] || null;
-    let ytplay2 = await yts(videoIdToFind ? `https://youtu.be/${videoIdToFind}` : text);
+    let ytplay2 = { url: text, title: "Desconocido", thumbnail: null, timestamp: "No encontrado", views: 0, ago: "No encontrado", author: {} };
 
-    if (videoIdToFind) {
-      ytplay2 = (ytplay2.all || ytplay2.videos || []).find(item => item.videoId === videoIdToFind) || ytplay2;
-    } else {
+    if (!videoIdToFind) {
+      ytplay2 = await yts(text);
       ytplay2 = (ytplay2.all || ytplay2.videos || [])[0] || ytplay2;
+      if (!ytplay2 || !ytplay2.videoId) {
+        return m.reply("✧ No se encontraron resultados para tu búsqueda.");
+      }
     }
 
-    if (!ytplay2 || !ytplay2.videoId) {
-      return m.reply("✧ No se encontraron resultados para tu búsqueda.");
-    }
-
-    const { title = "No encontrado", thumbnail = null, timestamp = "No encontrado", views = 0, ago = "No encontrado", url = "No encontrado", author = {} } = ytplay2;
+    const { title = "No encontrado", thumbnail = null, timestamp = "No encontrado", views = 0, ago = "No encontrado", url = text, author = {} } = ytplay2;
     const canal = author.name || "Desconocido";
     const vistas = formatViews(views);
 
