@@ -19,7 +19,7 @@ txt = txt + ''
 m.reply(txt.slice(0, 65536) + '')
 }}
 
-handler.help = ['fetch'].map(v => v + ' *Link*')
+handler.help = ['fetch'].map(v => v + '')
 handler.tags = ['owner']
 handler.command = ['fetch', 'get']
 handler.rowner = true 
