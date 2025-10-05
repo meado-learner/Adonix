@@ -2,7 +2,7 @@ import ws from "ws"
 
 const handler = async (m, { conn, command, usedPrefix, participants }) => {
     try {
-        const users = [
+        const allBots = [
             global.conn.user.jid, 
             ...new Set(
                 global.conns
@@ -27,15 +27,15 @@ const handler = async (m, { conn, command, usedPrefix, participants }) => {
             return resultado.trim()
         }
 
-        let groupBots = users.filter((bot) => participants.some((p) => p.id === bot))
-        if (participants.some((p) => p.id === global.conn.user.jid) && !groupBots.includes(global.conn.user.jid)) {
+        let groupBots = allBots.filter(bot => participants.some(p => p.id === bot))
+        if (!groupBots.includes(global.conn.user.jid) && participants.some(p => p.id === global.conn.user.jid)) {
             groupBots.push(global.conn.user.jid)
         }
 
         const botsGroup = groupBots.length > 0
-            ? groupBots.map((bot) => {
+            ? groupBots.map(bot => {
                 const isMainBot = bot === global.conn.user.jid
-                const v = global.conns.find((conn) => conn.user.jid === bot)
+                const v = global.conns.find(c => c.user.jid === bot)
                 const uptime = isMainBot
                     ? convertirMsADiasHorasMinutosSegundos(Date.now() - global.conn.uptime)
                     : v?.uptime
@@ -48,7 +48,7 @@ const handler = async (m, { conn, command, usedPrefix, participants }) => {
 
         const message = `*「 ✦ 」 Lista de bots activos*\n
 ❀ Principal: *1*
-✿ Subs: *${users.length - 1}*
+✿ Subs: *${allBots.length - 1}*
 
 ❏ En este grupo: *${groupBots.length}* bots
 ${botsGroup}`
