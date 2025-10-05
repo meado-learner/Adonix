@@ -1,64 +1,100 @@
 import fetch from "node-fetch"
 import yts from 'yt-search'
+import axios from "axios"
+const youtubeRegexID = /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([a-zA-Z0-9_-]{11})/
 
-const youtubeRegexID = /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{11})/
-
-const handler = async (m, { conn, text, command }) => {
+const handler = async (m, { conn, text, usedPrefix, command }) => {
   try {
-    if (!text?.trim()) return conn.reply(m.chat, `❀ Por favor, ingresa el nombre o link de YouTube.`, m)
-
-    let videoIdToFind = text.match(youtubeRegexID) || null
-    let searchQuery = videoIdToFind ? 'https://youtu.be/' + videoIdToFind[1] : text
-    let ytplay2 = await yts(searchQuery)
-
-    
-    let video = null
-    if (videoIdToFind && ytplay2.videos?.length) {
-      video = ytplay2.videos.find(v => v.videoId === videoIdToFind[1])
+    if (!text.trim()) {
+      return conn.reply(m.chat, `❀ Por favor, ingresa el nombre de la música a descargar.`, m)
     }
-    if (!video) video = ytplay2.videos?.[0] || null
-    if (!video) return m.reply('✧ No se encontraron resultados para tu búsqueda.')
+  
+    let videoIdToFind = text.match(youtubeRegexID) || null
+    let ytplay2 = await yts(videoIdToFind === null ? text : 'https://youtu.be/' + videoIdToFind[1])
 
-    const { title, url, thumbnail } = video
-    const thumb = thumbnail ? (await conn.getFile(thumbnail))?.data : null
+    if (videoIdToFind) {
+      const videoId = videoIdToFind[1]  
+      ytplay2 = ytplay2.all.find(item => item.videoId === videoId) || ytplay2.videos.find(item => item.videoId === videoId)
+    } 
+    ytplay2 = ytplay2.all?.[0] || ytplay2.videos?.[0] || ytplay2  
+    if (!ytplay2 || ytplay2.length == 0) {
+      return m.reply('✧ No se encontraron resultados para tu búsqueda.')
+    }
 
-    if (['play', 'yta', 'ytmp3', 'playaudio'].includes(command)) {
-      const api = await (await fetch(`${global.apiadonix}/download/ytmp3?apikey=Adofreekey&url=${encodeURIComponent(url)}`)).json()
-      if (!api?.data?.url) return conn.reply(m.chat, '⚠︎ No se pudo obtener el audio desde la API.', m)
-      await conn.sendMessage(
-        m.chat,
-        {
-          audio: { url: api.data.url },
-          fileName: `${title || 'audio'}.mp3`,
-          mimetype: 'audio/mpeg'
+    let { title, thumbnail, timestamp, views, ago, url, author } = ytplay2
+    title = title || 'no encontrado'
+    thumbnail = thumbnail || 'no encontrado'
+    timestamp = timestamp || 'no encontrado'
+    views = views || 'no encontrado'
+    ago = ago || 'no encontrado'
+    url = url || 'no encontrado'
+    author = author || 'no encontrado'
+
+    const vistas = formatViews(views)
+    const canal = author.name ? author.name : 'Desconocido'
+    const infoMessage = `「✦」Descargando *<${title || 'Desconocido'}>*\n\n> ✧ Canal » *${canal}*\n> ✰ Vistas » *${vistas || 'Desconocido'}*\n> ⴵ Duración » *${timestamp || 'Desconocido'}*\n> ✐ Publicado » *${ago || 'Desconocido'}*\n> 🜸 Link » ${url}`
+    const thumb = (await conn.getFile(thumbnail))?.data
+    const JT = {
+      contextInfo: {
+        externalAdReply: {
+          title: botname,
+          body: dev,
+          mediaType: 1,
+          previewType: 0,
+          mediaUrl: url,
+          sourceUrl: url,
+          thumbnail: thumb,
+          renderLargerThumbnail: true,
         },
-        { quoted: m }
-      )
-    } else if (['play2', 'ytv', 'ytmp4', 'mp4'].includes(command)) {
-      const api = await (await fetch(`${global.apiadonix}/download/ytmp4?apikey=Adofreekey&url=${encodeURIComponent(url)}`)).json()
-      if (!api?.data?.url) return conn.reply(m.chat, '⚠︎ No se pudo obtener el video desde la API.', m)
-      await conn.sendMessage(
-        m.chat,
-        {
-          video: { url: api.data.url },
-          mimetype: 'video/mp4',
-          fileName: `${title || 'video'}.mp4`,
-          thumbnail: thumb
-        },
-        { quoted: m }
-      )
+      },
+    }
+    await conn.reply(m.chat, infoMessage, m, JT)    
+
+    if (command === 'mp3' || command === 'yta' || command === 'ytmp3' || command === 'playaudio') {
+      try {
+        const api = await (await fetch(`${global.apiadonix}/download/ytmp3?apikey=Adofreekey&url=${encodeURIComponent(url)}`)).json()
+        const result = api?.data?.url
+        if (!result) throw new Error('⚠ El enlace de audio no se generó correctamente.')
+        await conn.sendMessage(m.chat, { audio: { url: result }, fileName: `${title}.mp3`, mimetype: 'audio/mpeg' }, { quoted: m })
+      } catch (e) {
+        return conn.reply(m.chat, '⚠︎ No se pudo enviar el audio. Esto puede deberse a que el archivo es demasiado pesado o a un error en la generación de la URL. Por favor, intenta nuevamente más tarde.', m)
+      }
+    } else if (command === 'play2' || command === 'ytv' || command === 'ytmp4' || command === 'mp4') {
+      try {
+        const api = await (await fetch(`${global.apiadonix}/download/ytmp4?apikey=Adofreekey&url=${encodeURIComponent(url)}`)).json()
+        const result = api?.data?.url
+        if (!result) throw new Error('⚠ El enlace de video no se generó correctamente.')
+        await conn.sendMessage(
+          m.chat,
+          {
+            video: { url: result },
+            mimetype: 'video/mp4',
+            fileName: `${title}.mp4`,
+            thumbnail: thumb
+          },
+          { quoted: m }
+        )
+      } catch (e) {
+        return conn.reply(m.chat, '⚠︎ No se pudo enviar el video. Esto puede deberse a que el archivo es demasiado pesado o a un error en la generación de la URL. Por favor, intenta nuevamente más tarde.', m)
+      }
     } else {
       return conn.reply(m.chat, '✧︎ Comando no reconocido.', m)
     }
-
   } catch (error) {
-    console.error(error)
     return m.reply(`⚠︎ Ocurrió un error: ${error}`)
   }
 }
 
-handler.command = handler.help = ['yta', 'ytmp3', 'ytv', 'ytmp4']
+handler.command = handler.help = ['mp3', 'yta', 'ytmp3', 'ytv', 'ytmp4', 'mp4']
 handler.tags = ['descargas']
 handler.group = true
 
 export default handler
+
+function formatViews(views) {
+  if (views === undefined) return "No disponible"
+  if (views >= 1_000_000_000) return `${(views / 1_000_000_000).toFixed(1)}B (${views.toLocaleString()})`
+  if (views >= 1_000_000) return `${(views / 1_000_000).toFixed(1)}M (${views.toLocaleString()})`
+  if (views >= 1_000) return `${(views / 1_000).toFixed(1)}k (${views.toLocaleString()})`
+  return views.toString()
+}
