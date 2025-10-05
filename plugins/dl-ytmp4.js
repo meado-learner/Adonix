@@ -1,4 +1,4 @@
-*/import yts from 'yt-search'
+/*import yts from 'yt-search'
 import fetch from 'node-fetch'
 
 let handler = async (m, { conn, text }) => {
@@ -36,4 +36,4 @@ handler.help = ['ytmp4']
 handler.tags = ['descargas']
 handler.command = ['ytmp4']
 
-export default handler/*
+export default handler*/
