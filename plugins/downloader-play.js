@@ -1,13 +1,30 @@
 import yts from 'yt-search';
 import fetch from 'node-fetch';
 
+async function getRandomCDN() {
+  const res = await fetch('https://media.savetube.me/api/random-cdn');
+  const data = await res.json();
+  return data.cdn; 
+}
+
+async function getVideoDownload(videoId, format = 'mp4', quality = '720p') {
+  const cdn = await getRandomCDN();
+  const convertUrl = `https://${cdn}/api/convert`;
+
+  const res = await fetch(convertUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ videoId, format, quality })
+  });
+
+  const data = await res.json();
+  if (!data.downloadUrl) throw new Error('No se pudo obtener el link de descarga');
+  return data.downloadUrl;
+}
+
 let handler = async (m, { conn, command, text, usedPrefix }) => {
   if (!text) 
-    return conn.reply(
-      m.chat, 
-      '「✿」 Ingresa el nombre de lo que quieres buscar', 
-      m
-    );
+    return conn.reply(m.chat, '「✿」 Ingresa el nombre de lo que quieres buscar', m);
 
   await m.react('🕓');
 
@@ -15,11 +32,7 @@ let handler = async (m, { conn, command, text, usedPrefix }) => {
   let play = res.videos[0];
 
   if (!play) 
-    return conn.reply(
-      m.chat, 
-      '> No se encontraron resultados para tu búsqueda', 
-      m
-    );
+    return conn.reply(m.chat, '> No se encontraron resultados para tu búsqueda', m);
 
   let { title, thumbnail, ago, timestamp, views, videoId, url, author } = play;
 
@@ -64,37 +77,16 @@ let handler = async (m, { conn, command, text, usedPrefix }) => {
   try {
     if (command === 'play' || command === 'play2') {
       if (command.endsWith('mp3') || command === 'play') {
-        const endpoint = `${global.apiadonix}/download/ytmp3?apikey=Adofreekey&url=${encodeURIComponent(url)}`;
-        const resApi = await fetch(endpoint);
-        const json = await resApi.json();
-        const audioUrl = json.data?.url;
-
-        if (!audioUrl) 
-          return conn.reply(
-            m.chat, 
-            '「✦」 Ocurrió un error, no se pudo obtener el audio.', 
-            m
-          );
-
+        
+        const audioUrl = await getVideoDownload(videoId, 'mp3');
         await conn.sendMessage(m.chat, { 
           audio: { url: audioUrl }, 
           mimetype: 'audio/mpeg', 
           ptt: false 
         }, { quoted: m });
-
       } else {
-        const endpoint = `${global.apiadonix}/download/ytmp4?apikey=Adofreekey&url=${encodeURIComponent(url)}`;
-        const resApi = await fetch(endpoint);
-        const json = await resApi.json();
-        const videoUrl = json.data?.url;
-
-        if (!videoUrl) 
-          return conn.reply(
-            m.chat, 
-            '「✦」 Ocurrió un error, no se pudo obtener el video.', 
-            m
-          );
-
+    
+        const videoUrl = await getVideoDownload(videoId, 'mp4');
         await conn.sendMessage(m.chat, { 
           video: { url: videoUrl }, 
           caption: `「✦」 *${title}*`,
