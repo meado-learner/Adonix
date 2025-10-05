@@ -20,30 +20,25 @@ let handler = async (m, { conn, usedPrefix, command }) => {
 
     if (!mime) {  
       return conn.sendMessage(m.chat, {  
-        text: `❀ Por favor, envía una imagen o responde a una imagen usando *${usedPrefix + command}*`,  
-        ...global.rcanal  
+        text: `❀ Por favor, envía una imagen o responde a una imagen usando *${usedPrefix + command}*`
       }, { quoted: m })  
     }  
 
     if (!/image\/(jpe?g|png|webp)/.test(mime)) {  
       return conn.sendMessage(m.chat, {  
-        text: `✧ El formato (${mime}) no es compatible, usa JPG, PNG o WEBP.`,  
-        ...global.rcanal  
+        text: `✧ El formato (${mime}) no es compatible, usa JPG, PNG o WEBP.`
       }, { quoted: m })  
     }  
 
     await conn.sendMessage(m.chat, {  
-      text: `✧ Mejorando tu imagen, espera...`,  
-      ...global.rcanal  
+      text: `✧ Mejorando tu imagen, espera...`
     }, { quoted: m })  
 
     let img = await q.download?.()  
     if (!img) throw new Error('No pude descargar la imagen.')  
 
-    // 1. Subimos a Catbox
     let uploadedUrl = await uploadImage(img)  
 
-    // 2. Usamos la nueva API
     const apiKey = "may-3d9ac5f2"
     const apiUrl = `${global.mayapi}/remini?image=${encodeURIComponent(uploadedUrl)}&apikey=${apiKey}`
 
@@ -53,14 +48,12 @@ let handler = async (m, { conn, usedPrefix, command }) => {
     const data = await res.json()  
     if (!data.status || !data.result) throw new Error('No se pudo mejorar la imagen.')  
 
-    // 3. Descargamos la imagen mejorada
     const improvedRes = await fetch(data.result)  
     const buffer = await improvedRes.buffer()  
 
     await conn.sendMessage(m.chat, {  
       image: buffer,  
-      caption: `✅ *Imagen mejorada con éxito*`,  
-      ...global.rcanal  
+      caption: `☆ *Imagen mejorada con éxito*`
     }, { quoted: m })  
 
     await m.react('✅')
@@ -69,8 +62,7 @@ let handler = async (m, { conn, usedPrefix, command }) => {
     console.error(e)
     await m.react('✖️')
     await conn.sendMessage(m.chat, {
-      text: '❌ Error al mejorar la imagen, inténtalo más tarde.',
-      ...global.rcanal
+      text: '❌ Error al mejorar la imagen, inténtalo más tarde.'
     }, { quoted: m })
   }
 }
