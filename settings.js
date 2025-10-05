@@ -20,6 +20,9 @@ global.jadi = "Sessions/SubBot"
 global.duckJadibts = true
 global.apiadonix = 'https://apiadonix.kozow.com'
 global.mayapi = 'https://mayapi.ooguy.com'
+global.ch = {
+ch1: "120363401404146384@newsletter"
+}
 
 export const defaultSettings = {
     botname: "𝐇𝐚𝐦𝐬𝐭𝐲 𝐀𝐃",
