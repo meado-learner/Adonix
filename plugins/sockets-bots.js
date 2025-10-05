@@ -1,14 +1,13 @@
 import ws from "ws"
 
-const handler = async (m, { conn, command, usedPrefix, participants }) => {
+const handler = async (m, { conn, participants, usedPrefix }) => {
     try {
+        
         const allBots = [
-            global.conn.user.jid, 
-            ...new Set(
-                global.conns
-                    .filter((c) => c.user && c.ws.socket && c.ws.socket.readyState !== ws.CLOSED)
-                    .map((c) => c.user.jid)
-            )
+            global.conn.user.jid,
+            ...global.conns
+                .filter(c => c.user?.jid && c.ws?.socket?.readyState !== ws.CLOSED)
+                .map(c => c.user.jid)
         ]
 
         function convertirMsADiasHorasMinutosSegundos(ms) {
@@ -27,19 +26,17 @@ const handler = async (m, { conn, command, usedPrefix, participants }) => {
             return resultado.trim()
         }
 
-        let groupBots = allBots.filter(bot => participants.some(p => p.id === bot))
-        if (!groupBots.includes(global.conn.user.jid) && participants.some(p => p.id === global.conn.user.jid)) {
-            groupBots.push(global.conn.user.jid)
-        }
+        // Bots en el grupo
+        const groupBots = allBots.filter(bot => participants.some(p => p.id === bot))
 
         const botsGroup = groupBots.length > 0
             ? groupBots.map(bot => {
                 const isMainBot = bot === global.conn.user.jid
-                const v = global.conns.find(c => c.user.jid === bot)
+                const subSock = global.conns.find(c => c.user?.jid === bot)
                 const uptime = isMainBot
-                    ? convertirMsADiasHorasMinutosSegundos(Date.now() - global.conn.uptime)
-                    : v?.uptime
-                        ? convertirMsADiasHorasMinutosSegundos(Date.now() - v.uptime)
+                    ? convertirMsADiasHorasMinutosSegundos(Date.now() - (global.conn.uptime || Date.now()))
+                    : subSock?.isInit
+                        ? convertirMsADiasHorasMinutosSegundos(Date.now() - (subSock?.uptime || Date.now()))
                         : "Activo desde ahora"
                 const mention = bot.replace(/[^0-9]/g, '')
                 return `@${mention}\n> Bot: ${isMainBot ? 'Principal' : 'Sub-Bot'}\n> Online: ${uptime}`
@@ -55,13 +52,13 @@ ${botsGroup}`
 
         const mentionList = groupBots.map(bot => bot.endsWith("@s.whatsapp.net") ? bot : `${bot}@s.whatsapp.net`)
 
-        await conn.sendMessage(m.chat, { 
-            text: message, 
-            contextInfo: { mentionedJid: mentionList } 
+        await conn.sendMessage(m.chat, {
+            text: message,
+            contextInfo: { mentionedJid: mentionList }
         }, { quoted: m })
 
-    } catch (error) {
-        m.reply(`⚠︎ Se ha producido un problema.\n> Usa *${usedPrefix}report* para informarlo.\n\n${error.message}`)
+    } catch (err) {
+        m.reply(`⚠︎ Se ha producido un error.\n> Usa *${usedPrefix}report* para informarlo.\n\n${err.message}`)
     }
 }
 
