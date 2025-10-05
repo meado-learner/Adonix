@@ -4,30 +4,42 @@ import yts from 'yt-search'
 let handler = async (m, { conn, text }) => {
   if (!text) return conn.reply(m.chat, '「✿」 Ingresa el nombre o link de YouTube', m)
   await m.react('🕓')
+
   try {
     let url, video
-    if (text.match(/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/i)) {
+
+    if (/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\//i.test(text)) {
       url = text.trim()
       let id = url.split('v=')[1] || url.split('/').pop()
       let res = await yts({ videoId: id })
-      video = res.videos && res.videos[0] ? res.videos[0] : null
+      if (!res || !res.videos || !res.videos.length)
+        return conn.reply(m.chat, '「✦」 No se encontró información del video.', m)
+      video = res.videos[0]
     } else {
       let res = await yts(text)
-      video = res.videos && res.videos.length ? res.videos[0] : null
-      if (!video) return conn.reply(m.chat, '「✦」 No se encontró ningún resultado', m)
+      if (!res || !res.videos || !res.videos.length)
+        return conn.reply(m.chat, '「✦」 No se encontró ningún resultado.', m)
+      video = res.videos[0]
       url = `https://youtube.com/watch?v=${video.videoId}`
     }
 
+    if (!video || !video.title)
+      return conn.reply(m.chat, '「✦」 No se pudo obtener los datos del video.', m)
+
     const api = `${global.apiadonix}/download/ytmp4?apikey=Adofreekey&url=${encodeURIComponent(url)}`
     const r = await fetch(api)
-    const json = await r.json()
-    if (!json || !json.data || !json.data.url) {
+    const json = await r.json().catch(() => ({}))
+
+    if (!json?.data?.url) {
       await m.react('❌')
-      return conn.reply(m.chat, '「✦」 No se pudo obtener el video.', m)
+      return conn.reply(m.chat, '「✦」 No se pudo obtener el video desde el servidor.', m)
     }
 
     const videoUrl = json.data.url
-    const caption = `☆ *${video.title}*\n✦ *Canal:* ${video.author?.name || 'Desconocido'}\n✿ *Duración:* ${video.timestamp}\n❀ *URL:* ${url}`
+    const caption = `☆ *${video.title}*
+✦ *Canal:* ${video.author?.name || 'Desconocido'}
+✿ *Duración:* ${video.timestamp || 'N/A'}
+❀ *URL:* ${url}`
 
     await conn.sendMessage(
       m.chat,
@@ -35,10 +47,11 @@ let handler = async (m, { conn, text }) => {
         video: { url: videoUrl },
         mimetype: 'video/mp4',
         caption,
-        thumbnail: video.thumbnail,
+        thumbnail: await (await fetch(video.thumbnail)).buffer(),
       },
       { quoted: m }
     )
+
     await m.react('✅')
   } catch (e) {
     console.error(e)
