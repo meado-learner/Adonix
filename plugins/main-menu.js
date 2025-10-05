@@ -13,14 +13,12 @@ let handler = async (m, { conn, usedPrefix }) => {
       }
     }
 
-   
     let uptimeSec = process.uptime()
     let hours = Math.floor(uptimeSec / 3600)
     let minutes = Math.floor((uptimeSec % 3600) / 60)
     let seconds = Math.floor(uptimeSec % 60)
     let uptimeStr = `${hours}h ${minutes}m ${seconds}s`
 
-   
     let botNameToShow = typeof global.botname === "string" ? global.botname : "Bot"
     let bannerUrl = global.banner
     if (!bannerUrl) return conn.reply(m.chat, "⚠️ No se ha configurado un banner para este bot.", m)
@@ -29,7 +27,6 @@ let handler = async (m, { conn, usedPrefix }) => {
 
     let rolBot = conn.user.jid === global.conn.user.jid ? 'Principal 🅥' : 'Sub-Bot 🅑'
 
-   
     let txt = `☆ ¡𝐇𝐨𝐥𝐚! 𝐒𝐨𝐲 *${botNameToShow}* (${rolBot})
 ╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┈┈┈    
 ╎ ❏ 𝖠𝖼𝗍𝗂𝗏𝗂𝖽𝖺𝖽: ${uptimeStr}
@@ -50,7 +47,6 @@ let handler = async (m, { conn, usedPrefix }) => {
       txt += `> ┗╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍\n\n`
     }
 
-    
     let thumbnailBuffer
     try {
       const res = await fetch(bannerUrl)
@@ -59,20 +55,21 @@ let handler = async (m, { conn, usedPrefix }) => {
       thumbnailBuffer = null
     }
 
-    
     await conn.sendMessage(
       m.chat,
       {
         text: txt,
         mentions: [m.sender],
         contextInfo: {
+          forwardingScore: 9999,
+          isForwarded: true,
           externalAdReply: {
             title: `${botNameToShow} — Menú principal`,
             body: `${global.author}`,
             thumbnail: thumbnailBuffer,
             mediaType: 1,
             showAdAttribution: false,
-            sourceUrl: 'https://apiadonix.kozow.com', 
+            sourceUrl: 'https://apiadonix.kozow.com',
             renderLargerThumbnail: true
           }
         }
