@@ -13,26 +13,29 @@ let handler = async (m, { conn, usedPrefix }) => {
       }
     }
 
+   
     let uptimeSec = process.uptime()
     let hours = Math.floor(uptimeSec / 3600)
     let minutes = Math.floor((uptimeSec % 3600) / 60)
     let seconds = Math.floor(uptimeSec % 60)
     let uptimeStr = `${hours}h ${minutes}m ${seconds}s`
 
+   
     let botNameToShow = typeof global.botname === "string" ? global.botname : "Bot"
     let bannerUrl = global.banner
-    if (!bannerUrl) return conn.reply(m.chat, "No se ha configurado un banner para este bot.", m)
+    if (!bannerUrl) return conn.reply(m.chat, "⚠️ No se ha configurado un banner para este bot.", m)
     if (Array.isArray(bannerUrl)) bannerUrl = bannerUrl[0]
     if (typeof bannerUrl !== "string") bannerUrl = String(bannerUrl)
 
     let rolBot = conn.user.jid === global.conn.user.jid ? 'Principal 🅥' : 'Sub-Bot 🅑'
 
-    let txt = `𝗛𝗼𝗹𝗮! 𝗦𝗼𝘆 *${botNameToShow}* (${rolBot})
+   
+    let txt = `☆ ¡𝐇𝐨𝐥𝐚! 𝐒𝐨𝐲 *${botNameToShow}* (${rolBot})
 ╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┈┈┈    
 ╎ ❏ 𝖠𝖼𝗍𝗂𝗏𝗂𝖽𝖺𝖽: ${uptimeStr}
 ╎ ☁︎︎ 𝖡𝖺𝗂𝗅𝖾𝗒𝗌: 𝖬𝗎𝗅𝗍𝗂 𝖣𝖾𝗏𝗂𝖼𝖾
 ╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
-\n\n`
+\n`
 
     for (let tag in menu) {
       txt += `> ┃✜ *${tag.toUpperCase()}*\n`
@@ -47,6 +50,7 @@ let handler = async (m, { conn, usedPrefix }) => {
       txt += `> ┗╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍\n\n`
     }
 
+    
     let thumbnailBuffer
     try {
       const res = await fetch(bannerUrl)
@@ -59,12 +63,18 @@ let handler = async (m, { conn, usedPrefix }) => {
     await conn.sendMessage(
       m.chat,
       {
-        image: thumbnailBuffer,
-        caption: txt,
+        text: txt,
         mentions: [m.sender],
         contextInfo: {
-          forwardingScore: 999,
-          isForwarded: true
+          externalAdReply: {
+            title: `${botNameToShow} — Menú principal`,
+            body: `${global.author}`,
+            thumbnail: thumbnailBuffer,
+            mediaType: 1,
+            showAdAttribution: true,
+            sourceUrl: 'https://apiadonix.kozow.com', 
+            renderLargerThumbnail: true
+          }
         }
       },
       { quoted: m }
