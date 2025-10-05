@@ -10,7 +10,9 @@ let handler = async (m, { conn, text }) => {
 
     if (/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\//i.test(text)) {
       url = text.trim()
-      let id = url.split('v=')[1] || url.split('/').pop()
+      let id = url.includes('v=')
+        ? url.split('v=')[1].split('&')[0]
+        : url.split('/').pop().split('?')[0]
       let res = await yts({ videoId: id })
       if (!res || !res.videos || !res.videos.length)
         return conn.reply(m.chat, '「✦」 No se encontró el video.', m)
