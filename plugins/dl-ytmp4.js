@@ -1,61 +1,64 @@
-import fetch from 'node-fetch'
+import fetch from "node-fetch"
 import yts from 'yt-search'
 
-let handler = async (m, { conn, text }) => {
-  if (!text) return conn.reply(m.chat, '「✿」 Ingresa el nombre o link de YouTube', m)
-  await m.react('🕓')
+const youtubeRegexID = /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{11})/
 
+const handler = async (m, { conn, text, command }) => {
   try {
-    let url, video
+    if (!text?.trim()) return conn.reply(m.chat, `❀ Por favor, ingresa el nombre o link de YouTube.`, m)
 
-    if (/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\//i.test(text)) {
-      url = text.trim()
-      let id = url.includes('v=')
-        ? url.split('v=')[1].split('&')[0]
-        : url.split('/').pop().split('?')[0]
-      let res = await yts({ videoId: id })
-      if (!res || !res.videos || !res.videos.length)
-        return conn.reply(m.chat, '「✦」 No se encontró el video.', m)
-      video = res.videos[0]
+    let videoIdToFind = text.match(youtubeRegexID) || null
+    let ytplay2 = await yts(videoIdToFind === null ? text : 'https://youtu.be/' + videoIdToFind[1])
+
+    if (videoIdToFind) {
+      const videoId = videoIdToFind[1]
+      ytplay2 = ytplay2.all.find(item => item.videoId === videoId) || ytplay2.videos.find(item => item.videoId === videoId)
+    }
+
+    ytplay2 = ytplay2.all?.[0] || ytplay2.videos?.[0] || ytplay2
+    if (!ytplay2) return m.reply('✧ No se encontraron resultados para tu búsqueda.')
+
+    const { title, url, thumbnail } = ytplay2
+    const thumb = (await conn.getFile(thumbnail))?.data
+
+    
+    if (['play', 'yta', 'ytmp3', 'playaudio'].includes(command)) {
+      const api = await (await fetch(`${global.apiadonix}/download/ytmp3?apikey=Adofreekey&url=${encodeURIComponent(url)}`)).json()
+      if (!api?.data?.url) return conn.reply(m.chat, '⚠︎ No se pudo obtener el audio desde la API.', m)
+      await conn.sendMessage(
+        m.chat,
+        {
+          audio: { url: api.data.url },
+          fileName: `${title}.mp3`,
+          mimetype: 'audio/mpeg'
+        },
+        { quoted: m }
+      )
+    } else if (['play2', 'ytv', 'ytmp4', 'mp4'].includes(command)) {
+      const api = await (await fetch(`${global.apiadonix}/download/ytmp4?apikey=Adofreekey&url=${encodeURIComponent(url)}`)).json()
+      if (!api?.data?.url) return conn.reply(m.chat, '⚠︎ No se pudo obtener el video desde la API.', m)
+      await conn.sendMessage(
+        m.chat,
+        {
+          video: { url: api.data.url },
+          mimetype: 'video/mp4',
+          fileName: `${title}.mp4`,
+          thumbnail: thumb
+        },
+        { quoted: m }
+      )
     } else {
-      let res = await yts(text)
-      if (!res || !res.videos || !res.videos.length)
-        return conn.reply(m.chat, '「✦」 No se encontró el video.', m)
-      video = res.videos[0]
-      url = `https://youtube.com/watch?v=${video.videoId}`
+      return conn.reply(m.chat, '✧︎ Comando no reconocido.', m)
     }
 
-    const api = `${global.apiadonix}/download/ytmp4?apikey=Adofreekey&url=${encodeURIComponent(url)}`
-    const r = await fetch(api)
-    const json = await r.json().catch(() => ({}))
-
-    if (!json?.data?.url) {
-      await m.react('❌')
-      return conn.reply(m.chat, '「✦」 No se pudo obtener el video.', m)
-    }
-
-    const videoUrl = json.data.url
-
-    await conn.sendMessage(
-      m.chat,
-      {
-        video: { url: videoUrl },
-        mimetype: 'video/mp4',
-        thumbnail: await (await fetch(video.thumbnail)).buffer(),
-      },
-      { quoted: m }
-    )
-
-    await m.react('✅')
-  } catch (e) {
-    console.error(e)
-    await m.react('❌')
-    conn.reply(m.chat, '「#」 Error al procesar tu solicitud.', m)
+  } catch (error) {
+    console.error(error)
+    return m.reply(`⚠︎ Ocurrió un error: ${error}`)
   }
 }
 
-handler.help = ['ytmp4']
+handler.command = handler.help = ['yta', 'ytmp3', 'ytv', 'ytmp4']
 handler.tags = ['descargas']
-handler.command = ['ytmp4']
+handler.group = true
 
 export default handler
