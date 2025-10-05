@@ -8,20 +8,20 @@ const handler = async (m, { conn, text, command }) => {
     if (!text?.trim()) return conn.reply(m.chat, `❀ Por favor, ingresa el nombre o link de YouTube.`, m)
 
     let videoIdToFind = text.match(youtubeRegexID) || null
-    let ytplay2 = await yts(videoIdToFind === null ? text : 'https://youtu.be/' + videoIdToFind[1])
-
-    if (videoIdToFind) {
-      const videoId = videoIdToFind[1]
-      ytplay2 = ytplay2.all.find(item => item.videoId === videoId) || ytplay2.videos.find(item => item.videoId === videoId)
-    }
-
-    ytplay2 = ytplay2.all?.[0] || ytplay2.videos?.[0] || ytplay2
-    if (!ytplay2) return m.reply('✧ No se encontraron resultados para tu búsqueda.')
-
-    const { title, url, thumbnail } = ytplay2
-    const thumb = (await conn.getFile(thumbnail))?.data
+    let searchQuery = videoIdToFind ? 'https://youtu.be/' + videoIdToFind[1] : text
+    let ytplay2 = await yts(searchQuery)
 
     
+    let video = null
+    if (videoIdToFind && ytplay2.videos?.length) {
+      video = ytplay2.videos.find(v => v.videoId === videoIdToFind[1])
+    }
+    if (!video) video = ytplay2.videos?.[0] || null
+    if (!video) return m.reply('✧ No se encontraron resultados para tu búsqueda.')
+
+    const { title, url, thumbnail } = video
+    const thumb = thumbnail ? (await conn.getFile(thumbnail))?.data : null
+
     if (['play', 'yta', 'ytmp3', 'playaudio'].includes(command)) {
       const api = await (await fetch(`${global.apiadonix}/download/ytmp3?apikey=Adofreekey&url=${encodeURIComponent(url)}`)).json()
       if (!api?.data?.url) return conn.reply(m.chat, '⚠︎ No se pudo obtener el audio desde la API.', m)
@@ -29,7 +29,7 @@ const handler = async (m, { conn, text, command }) => {
         m.chat,
         {
           audio: { url: api.data.url },
-          fileName: `${title}.mp3`,
+          fileName: `${title || 'audio'}.mp3`,
           mimetype: 'audio/mpeg'
         },
         { quoted: m }
@@ -42,7 +42,7 @@ const handler = async (m, { conn, text, command }) => {
         {
           video: { url: api.data.url },
           mimetype: 'video/mp4',
-          fileName: `${title}.mp4`,
+          fileName: `${title || 'video'}.mp4`,
           thumbnail: thumb
         },
         { quoted: m }
