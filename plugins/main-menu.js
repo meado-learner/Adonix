@@ -71,7 +71,7 @@ let handler = async (m, { conn, usedPrefix }) => {
             body: `${global.author}`,
             thumbnail: thumbnailBuffer,
             mediaType: 1,
-            showAdAttribution: falss,
+            showAdAttribution: false,
             sourceUrl: 'https://apiadonix.kozow.com', 
             renderLargerThumbnail: true
           }
