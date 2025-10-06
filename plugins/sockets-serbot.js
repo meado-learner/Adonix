@@ -53,36 +53,6 @@ global.db.data.users[m.sender].Subs = new Date * 1
 handler.help = ['qr', 'code']
 handler.tags = ['serbot']
 handler.command = ['qr', 'code']
-
-handler.all = async function (m, { conn, usedPrefix, text }) {
-if (!m.message) return
-
-
-if (m.text && m.text.startsWith(`${usedPrefix}copycode`)) {
-const codeToCopy = m.text.replace(`${usedPrefix}copycode`, '').trim()
-    
-
-const copyButton = {
-"name": "cta_copy",
-"buttonParamsJson": JSON.stringify({
-"display_text": "📋 Copiar código",
-"id": `copy_${codeToCopy}`,
-"copy_code": codeToCopy
-})
-}
-
-await conn.sendMessage(m.chat, {
-text: `✅ *Código listo para copiar:*\n\n\`\`\`${codeToCopy}\`\`\`\n\n📋 *Haz clic en el botón de abajo para copiar automáticamente*`,
-templateButtons: [copyButton]
-}, { quoted: m })
-
-
-await conn.sendMessage(m.chat, {
-text: `📋 *Alternativa:* Selecciona y copia este código:\n\n${codeToCopy}`
-}, { quoted: m })
-}
-}
-
 export default handler 
 
 export async function duckJadiBot(options) {
@@ -153,21 +123,8 @@ return
 if (qr && mcode) {
 let secret = await sock.requestPairingCode((m.sender.split`@`[0]))
 secret = secret.match(/.{1,4}/g)?.join("-")
-    
-
-const buttons = [
-{ buttonId: `${usedPrefix}copycode ${secret.replace(/-/g, '')}`, buttonText: { displayText: '💙 Copiar Código' }, type: 1 }
-]
-
-const buttonMessage = {
-text: `${rtx2}\n\n*Código:* ${secret}`,
-footer: `🦆 Tiempo restante: 5 segundos`,
-buttons: buttons,
-headerType: 1,
-mentions: [m.sender]
-}
-
-txtCode = await conn.sendMessage(m.chat, buttonMessage, { quoted: m })
+txtCode = await conn.sendMessage(m.chat, {text : rtx2}, { quoted: m })
+codeBot = await m.reply(secret)
 console.log(secret)
 }
 if (txtCode && txtCode.key) {
