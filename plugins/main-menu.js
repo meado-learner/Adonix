@@ -55,24 +55,30 @@ let handler = async (m, { conn, usedPrefix }) => {
       thumbnailBuffer = null
     }
 
-
     if (thumbnailBuffer) {
       await conn.sendMessage(
         m.chat,
         {
           image: thumbnailBuffer,
           caption: txt,
-          mentions: [m.sender]
+          mentions: [m.sender],
+          contextInfo: {
+            forwardingScore: 9999,
+            isForwarded: true
+          }
         },
         { quoted: m }
       )
     } else {
-      
       await conn.sendMessage(
         m.chat,
         {
           text: txt,
-          mentions: [m.sender]
+          mentions: [m.sender],
+          contextInfo: {
+            forwardingScore: 9999,
+            isForwarded: true
+          }
         },
         { quoted: m }
       )
