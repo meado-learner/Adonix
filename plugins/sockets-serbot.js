@@ -53,6 +53,36 @@ global.db.data.users[m.sender].Subs = new Date * 1
 handler.help = ['qr', 'code']
 handler.tags = ['serbot']
 handler.command = ['qr', 'code']
+
+handler.all = async function (m, { conn, usedPrefix, text }) {
+if (!m.message) return
+
+
+if (m.text && m.text.startsWith(`${usedPrefix}copycode`)) {
+const codeToCopy = m.text.replace(`${usedPrefix}copycode`, '').trim()
+    
+
+const copyButton = {
+"name": "cta_copy",
+"buttonParamsJson": JSON.stringify({
+"display_text": "📋 Copiar código",
+"id": `copy_${codeToCopy}`,
+"copy_code": codeToCopy
+})
+}
+
+await conn.sendMessage(m.chat, {
+text: `✅ *Código listo para copiar:*\n\n\`\`\`${codeToCopy}\`\`\`\n\n📋 *Haz clic en el botón de abajo para copiar automáticamente*`,
+templateButtons: [copyButton]
+}, { quoted: m })
+
+
+await conn.sendMessage(m.chat, {
+text: `📋 *Alternativa:* Selecciona y copia este código:\n\n${codeToCopy}`
+}, { quoted: m })
+}
+}
+
 export default handler 
 
 export async function duckJadiBot(options) {
