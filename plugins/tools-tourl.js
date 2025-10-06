@@ -14,39 +14,27 @@ const handler = async (m, { conn, command, text }) => {
     }, { quoted: m })
   }
 
-  
   if (!text) {
-    const sections = [{
-      title: "🥞 Servicios de Subida",
-      rows: [
-        { title: "📤 Supa.codes", description: "Subir a Supa.codes", rowId: ".tourl 1" },
-        { title: "📁 TmpFiles.org", description: "Subir a TmpFiles.org", rowId: ".tourl 2" },
-        { title: "🌐 Uguu.se", description: "Subir a Uguu.se", rowId: ".tourl 3" },
-        { title: "🖼️ FreeImage.Host", description: "Subir a FreeImage.Host", rowId: ".tourl 4" },
-        { title: "🚀 Todos los servicios", description: "Subir a todos a la vez", rowId: ".tourl 5" }
+    const msg = {
+      text: `*❏ SELECCIONA SERVICIO DE SUBIDA*\n\nElige dónde quieres subir tu archivo:`,
+      footer: "Bot de Subida de Archivos 🐢",
+      buttons: [
+        { buttonId: `.tourl 1`, buttonText: { displayText: "📤 Supa.codes" }, type: 1 },
+        { buttonId: `.tourl 2`, buttonText: { displayText: "📁 TmpFiles.org" }, type: 1 },
+        { buttonId: `.tourl 3`, buttonText: { displayText: "🌐 Uguu.se" }, type: 1 },
+        { buttonId: `.tourl 4`, buttonText: { displayText: "🖼️ FreeImage.Host" }, type: 1 },
+        { buttonId: `.tourl 5`, buttonText: { displayText: "🚀 Todos los servicios" }, type: 1 },
       ]
-    }]
-
-    const listMessage = {
-      text: "*❏ SELECCIONA SERVICIO DE SUBIDA*\n\nElige dónde quieres subir tu archivo:",
-      footer: "Bot de Subida de Archivos",
-      title: "🐢 Menú de Subida",
-      buttonText: "Ver Opciones",
-      sections
     }
-    
-    return conn.sendMessage(m.chat, listMessage, { quoted: m })
+    return conn.sendMessage(m.chat, msg, { quoted: m })
   }
 
   const option = text.trim()
   const validOptions = ['1', '2', '3', '4', '5']
   
   if (!validOptions.includes(option)) {
-    return conn.sendMessage(m.chat, {
-      text: '⚠️ Opción inválida. Usa un número del 1 al 5.'
-    }, { quoted: m })
+    return conn.sendMessage(m.chat, { text: '⚠️ Opción inválida. Usa un número del 1 al 5.' }, { quoted: m })
   }
-
 
   const media = await q.download()
   const tempDir = './tmp'
@@ -56,13 +44,9 @@ const handler = async (m, { conn, command, text }) => {
   const fileName = `media_${Date.now()}.${ext}`
   const filePath = path.join(tempDir, fileName)
   fs.writeFileSync(filePath, media)
-
   const buffer = fs.readFileSync(filePath)
 
-  
-  await conn.sendMessage(m.chat, {
-    react: { text: '🕓', key: m.key }
-  })
+  await conn.sendMessage(m.chat, { react: { text: '🕓', key: m.key } })
 
   
   const uploadToSupa = async (buffer) => {
@@ -129,7 +113,6 @@ const handler = async (m, { conn, command, text }) => {
     }
   }
 
-  
   let message = '*❏ Archivo subido exitosamente:*\n'
   let uploadResult
 
@@ -169,11 +152,8 @@ const handler = async (m, { conn, command, text }) => {
   }
 
   await conn.sendMessage(m.chat, { text: message }, { quoted: m })
-  await conn.sendMessage(m.chat, {
-    react: { text: '✅', key: m.key }
-  })
+  await conn.sendMessage(m.chat, { react: { text: '✅', key: m.key } })
 
-  
   fs.unlinkSync(filePath)
 }
 
