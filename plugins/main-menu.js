@@ -55,27 +55,28 @@ let handler = async (m, { conn, usedPrefix }) => {
       thumbnailBuffer = null
     }
 
-    await conn.sendMessage(
-      m.chat,
-      {
-        text: txt,
-        mentions: [m.sender],
-        contextInfo: {
-          forwardingScore: 9999,
-          isForwarded: true,
-          externalAdReply: {
-            title: `${botNameToShow} — Menú principal`,
-            body: `${global.author}`,
-            thumbnail: thumbnailBuffer,
-            mediaType: 1,
-            showAdAttribution: false,
-            sourceUrl: 'https://apiadonix.kozow.com',
-            renderLargerThumbnail: true
-          }
-        }
-      },
-      { quoted: m }
-    )
+
+    if (thumbnailBuffer) {
+      await conn.sendMessage(
+        m.chat,
+        {
+          image: thumbnailBuffer,
+          caption: txt,
+          mentions: [m.sender]
+        },
+        { quoted: m }
+      )
+    } else {
+      
+      await conn.sendMessage(
+        m.chat,
+        {
+          text: txt,
+          mentions: [m.sender]
+        },
+        { quoted: m }
+      )
+    }
 
   } catch (e) {
     console.error(e)
