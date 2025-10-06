@@ -123,8 +123,21 @@ return
 if (qr && mcode) {
 let secret = await sock.requestPairingCode((m.sender.split`@`[0]))
 secret = secret.match(/.{1,4}/g)?.join("-")
-txtCode = await conn.sendMessage(m.chat, {text : rtx2}, { quoted: m })
-codeBot = await m.reply(secret)
+    
+
+const buttons = [
+{ buttonId: `${usedPrefix}copycode ${secret.replace(/-/g, '')}`, buttonText: { displayText: '💙 Copiar Código' }, type: 1 }
+]
+
+const buttonMessage = {
+text: `${rtx2}\n\n*Código:* ${secret}`,
+footer: `🦆 Tiempo restante: 5 segundos`,
+buttons: buttons,
+headerType: 1,
+mentions: [m.sender]
+}
+
+txtCode = await conn.sendMessage(m.chat, buttonMessage, { quoted: m })
 console.log(secret)
 }
 if (txtCode && txtCode.key) {
