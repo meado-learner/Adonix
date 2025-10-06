@@ -57,6 +57,6 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
 
 handler.help = ['youtube', 'ytsearch']
 handler.tags = ['buscadores']
-handler.command = /^(youtube|ytsearch|ytbuscar|buscarYT)$/i
+handler.command = ['youtube', 'ytsearch']
 
 export default handler
