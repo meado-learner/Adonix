@@ -27,15 +27,15 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
     let resultsText = `「❍」 *RESULTADOS DE GRUPOS*\n\n`
     resultsText += `> ❍ Término » ${text}\n`
     resultsText += `> ❐ Resultados » ${groups.length}\n\n`
-    resultsText += `❐━━━━━━━━━━━━━━━━━━❏\n\n`
+    resultsText += `❐━━━━━━━━━━━━━❏\n\n`
 
     groups.forEach((group, index) => {
       resultsText += `「${index + 1}」 *${group.name}*\n`
       resultsText += `> ➣ ${group.link}\n\n`
     })
 
-    resultsText += `❐━━━━━━━━━━━━━━━━━━❏\n\n`
-    resultsText += `「✧」 *INSTRUCCIONES*\n\n`
+    resultsText += `❐━━━━━━━━━━━━━━❏\n\n`
+    resultsText += `「✧」 INSTRUCCIONES*\n\n`
     resultsText += `> ❍ Paso 1 » Toca el enlace del grupo\n`
     resultsText += `> ❐ Paso 2 » Selecciona "Abrir en WhatsApp"\n`
     resultsText += `> ❀ Paso 3 » Presiona "Unirse al grupo"`
