@@ -2,7 +2,7 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
   if (!text) {
     return conn.reply(
       m.chat,
-      `> Por favor, proporciona el nombre de usuario o @ del canal de YouTube.\n\n*Ejemplos:*\n${usedPrefix}${command} MrBeast\n${usedPrefix}${command} @MrBeast`,
+      `> Por favor, proporciona el nombre del canal de YouTube.\n\n*Ejemplo:*\n${usedPrefix}${command} MrBeast`,
       m
     )
   }
@@ -22,7 +22,7 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
 
     const { channelData, videos } = data.data
     
-    let message = `「✦」Información de *${channelData.username}*\n\n`
+    let message = `「✦」 Información de *${channelData.username}*\n\n`
     message += `> ✐ Suscriptores » *${channelData.subscriberCount}*\n`
     message += `> ⴵ Contenido Familiar » *${channelData.isFamilySafe ? 'Sí' : 'No'}*\n`
     message += `> 🜸 Link » ${channelData.channelUrl}\n\n`
@@ -35,7 +35,7 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
     }
 
     if (videos && videos.length > 0) {
-      message += `*Últimos Videos:*\n\n`
+      message += `*✜ Últimos Videos:*\n\n`
       videos.slice(0, 5).forEach((video, index) => {
         message += `${index + 1}. *${video.title}*\n`
         message += `> ✿ Duración » *${video.duration}*\n`
@@ -68,7 +68,7 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
 }
 
 handler.help = ['ytstalk']
-handler.tags = ['stalk', 'tools']
+handler.tags = ['stalks']
 handler.command = ['ytstalk', 'youtubestalk', 'ytstalker', 'ytinfo']
 
 export default handler
