@@ -22,7 +22,7 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
 
     await conn.reply(
       m.chat,
-      `❀ *Claude IA*\n\n> ${data.message}\n\n_Powered by ${data.creator}_`,
+      `❀ *Claude IA*\n\n> ${data.message}`,
       m
     )
 
