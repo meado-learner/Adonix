@@ -44,10 +44,9 @@ const handler = async (m, { conn, participants, usedPrefix }) => {
             : `✧ No hay bots activos en este grupo`
 
         const message = `*「 ✦ 」 Lista de bots activos*\n
-❀ Principal: *1*
-✿ Subs: *${allBots.length - 1}*
+✧ Sockets: *${allBots.length - 1}*
 
-❏ En este grupo: *${groupBots.length}* bots
+❍ En este grupo: *${groupBots.length}* bots
 ${botsGroup}`
 
         const mentionList = groupBots.map(bot => bot.endsWith("@s.whatsapp.net") ? bot : `${bot}@s.whatsapp.net`)
