@@ -1,50 +1,69 @@
 import ws from 'ws'
 
-const handler = async (m, { conn, usedPrefix }) => {
-  const subBots = [...new Set([...global.conns.filter((conn) => conn.user && conn.ws.socket && conn.ws.socket.readyState !== ws.CLOSED).map((conn) => conn.user.jid)])]
+const handler = async (m, { conn }) => {
+  const subBots = [
+    ...new Set([
+      ...global.conns
+        .filter((conn) => conn.user && conn.ws.socket && conn.ws.socket.readyState !== ws.CLOSED)
+        .map((conn) => conn.user.jid)
+    ])
+  ]
+  
   if (global.conn?.user?.jid && !subBots.includes(global.conn.user.jid)) {
     subBots.push(global.conn.user.jid)
   }
+  
   const chat = global.db.data.chats[m.chat]
   const mentionedJid = await m.mentionedJid
   const who = mentionedJid[0] ? mentionedJid[0] : m.quoted ? await m.quoted.sender : false
   
   if (!who) {
-    return conn.sendMessage(m.chat, { 
-      text: `「✦」 CONFIGURACION DE BOT PRIMARIO\n\n> ❍ Accion » Mencione un Socket\n> ❐ Uso » Responda o mencione un usuario\n> ❀ Objetivo » Establecer Bot principal del grupo` 
-    }, { quoted: m })
+    return conn.reply(
+      m.chat, 
+      `❀ *Error de Selección*\n\n> Por favor, menciona o responde a un mensaje del Socket que deseas establecer como Bot principal del grupo.`, 
+      m
+    )
   }
   
   if (!subBots.includes(who)) {
-    return conn.sendMessage(m.chat, { 
-      text: `「☆」 USUARIO NO VALIDO\n\n> ❍ Usuario » @${who.split`@`[0]}\n> ❐ Estado » No es un Socket autorizado\n> ❀ Sistema » ${botname}`,
-      mentions: [who]
-    }, { quoted: m })
+    return conn.reply(
+      m.chat, 
+      `❀ *Socket No Válido*\n\n> El usuario mencionado no es un Socket activo de *${botname}*.\n> Verifica que el bot esté conectado correctamente.`, 
+      m
+    )
   }
   
   if (chat.primaryBot === who) {
-    return conn.sendMessage(m.chat, { 
-      text: `「❀」 CONFIGURACION ACTUAL\n\n> ❍ Usuario » @${who.split`@`[0]}\n> ❐ Estado » Ya es Bot principal\n> ❀ Grupo » Este chat actual`,
-      mentions: [who]
-    }, { quoted: m })
+    return conn.reply(
+      m.chat, 
+      `❀ *Bot Primario Actual*\n\n> @${who.split`@`[0]} ya está establecido como Bot primario en este grupo.\n> No es necesario realizar cambios.`, 
+      m, 
+      { mentions: [who] }
+    )
   }
   
   try {
     chat.primaryBot = who
-    conn.sendMessage(m.chat, { 
-      text: `「•」 BOT PRIMARIO CONFIGURADO\n\n> ❍ Socket » @${who.split`@`[0]}\n> ❐ Funcion » Bot principal del grupo\n> ❀ Nota » Todos los comandos seran ejecutados por este Socket`,
-      mentions: [who]
-    }, { quoted: m })
+    
+    conn.reply(
+      m.chat, 
+      `❀ *Bot Primario Actualizado*\n\n> Se ha establecido exitosamente a @${who.split`@`[0]} como Bot primario de este grupo.\n\n*Nota:* Todos los comandos ejecutados en este grupo ahora serán procesados por @${who.split`@`[0]}.`, 
+      m, 
+      { mentions: [who] }
+    )
   } catch (e) {
-    conn.sendMessage(m.chat, { 
-      text: `「❗」 ERROR DE CONFIGURACION\n\n> ❍ Problema » Error en el sistema\n> ❐ Solucion » Use ${usedPrefix}report\n> ❀ Detalles » ${e.message}` 
-    }, { quoted: m })
+    console.error('Error al establecer Bot primario:', e)
+    conn.reply(
+      m.chat, 
+      `❀ *Error del Sistema*\n\n> Se ha producido un problema al intentar establecer el Bot primario.\n> Usa *${usedPrefix}report* para informar este error.\n\n*Detalles:*\n\`\`\`${e.message}\`\`\``, 
+      m
+    )
   }
 }
 
 handler.help = ['setprimary']
 handler.tags = ['grupo']
-handler.command = ['setprimary']
+handler.command = ['setprimary', 'botprimario', 'primarybot']
 handler.group = true
 handler.admin = true
 
