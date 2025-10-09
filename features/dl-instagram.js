@@ -1,19 +1,45 @@
-import Starlights from '@StarlightsTeam/Scraper'
+import fetch from "node-fetch";
 
-let handler = async (m, { conn, args, usedPrefix, command }) => {
-if (!args[0]) return conn.reply(m.chat, '*Ingresa el enlace del vídeo de Instagram junto al comando*', m)
+const instagramRegex = /(?:https?:\/\/)?(?:www\.)?instagram\.com\/(?:p|reel|tv|stories)\/([a-zA-Z0-9_-]+)/;
 
-try {
-m.react('🕑')
-let { dl_url } = await Starlights.igdl(args[0])
-await conn.sendFile(m.chat, dl_url, 'igdl.mp4', null, m, null, rcanal)
-m.react('✅')
-} catch {
-m.react('❌')
-}}
+const handler = async (m, { conn, text, command }) => {
+  try {
+    if (!text?.trim()) return conn.reply(m.chat, "❀ Ingresa el enlace del video de Instagram.", m);
 
-handler.help = ['instagram']
-handler.tags = ['descargas']
-handler.command = ['instagramdl', 'instagram', 'igdl', 'ig']
+    await m.react('🕓');
 
-export default handler
+    const url = text.trim();
+
+    if (!instagramRegex.test(url)) {
+      return conn.reply(m.chat, "✧ El enlace de Instagram no es válido. Usa: instagram.com/p/... o instagram.com/reel/...", m);
+    }
+
+    if (["ig", "igdl", "instagram", "insta"].includes(command)) {
+      const api = await (await fetch(`${global.apiadonix}/download/instagram?apikey=Adofreekey&url=${encodeURIComponent(url)}`)).json();
+      
+      if (!api.status || !api.data || api.data.length === 0) {
+        throw new Error("⚠ No se pudo obtener el contenido del enlace.");
+      }
+
+      const result = api.data[0]?.url;
+      if (!result) throw new Error("⚠ No se pudo generar el enlace de descarga.");
+
+      await conn.sendMessage(
+        m.chat,
+        { video: { url: result }, mimetype: "video/mp4", fileName: "instagram.mp4" },
+        { quoted: m }
+      );
+      await m.react('✔️');
+    } else {
+      return conn.reply(m.chat, "✧ Comando no reconocido.", m);
+    }
+  } catch (error) {
+    return m.reply(`⚠ Ocurrió un error: ${error.message || error}`);
+  }
+};
+
+handler.command = handler.help = ["instagram"];
+handler.tags = ["descargas"];
+handler.group = true;
+
+export default handler;
